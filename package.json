@@ -30,6 +30,9 @@
   },
   "homepage": "https://github.com/petulant-annie/homework5#readme",
   "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.1.0",
     "eslint": "^6.5.1",
     "express": "^4.17.1",
     "husky": "^3.0.8",
