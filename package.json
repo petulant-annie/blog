@@ -1,0 +1,39 @@
+{
+  "name": "homework5",
+  "version": "1.0.0",
+  "description": "REST style server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "eslintConfig": {
+    "plugins": [
+      "example"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petulant-annie/homework5.git"
+  },
+  "author": "Anna Zakharenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/petulant-annie/homework5/issues"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm test",
+      "pre-push": "npm test",
+      "...": "..."
+    }
+  },
+  "homepage": "https://github.com/petulant-annie/homework5#readme",
+  "dependencies": {
+    "eslint": "^6.5.1",
+    "express": "^4.17.1",
+    "husky": "^3.0.8",
+    "nodemon": "^1.19.3",
+    "pm2": "^3.5.1"
+  }
+}
