@@ -1,21 +1,40 @@
 const express = require('express');
 const https = require('https');
+const fs = require('fs');
+
 const router = express.Router();
 
-const data = require('./data');
+let users = require('./users');
 
 router.get('/api/v1/users', (req, res) => {
   res.writeHeader(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify(data));
+  res.end(JSON.stringify(users));
 });
 
 router.get('/api/v1/users/:id', (req, res) => {
   res.writeHeader(200, { 'Content-Type': 'application/json' });
-  res.status(200).send('hello users id');
+  
+  
+
 });
 
 router.post('/api/v1/users', (req, res) => {
-  res.status(201).send('post');
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+
+  fs.writeFileSync('./users.json',
+    JSON.stringify({
+      data: [...users.data,
+        {
+          id: users.data.length,
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          email: req.body.email
+        }
+      ],
+    })
+  );
+  res.end();
+
 });
 
 router.put('/api/v1/users/:id', (req, res) => {
