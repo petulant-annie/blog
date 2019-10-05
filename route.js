@@ -4,19 +4,29 @@ const fs = require('fs');
 const router = express.Router();
 
 const users = require('./users');
-let current = '';
+const articles = require('./articles');
+let currentUser = '';
 let index = null;
+let currentArticle = '';
 
-function currentUser(index) {
+function findCurrentUser(index) {
   users.data.find(user => {
     if (user.id === index) {
-      return current = user;
+      return currentUser = user;
     }
   });
 }
 
 function currentIndex(url) {
   return index = parseInt(url.split('/').slice(4));
+}
+
+function findCurrentArticle(index){
+  articles.data.find(article => {
+    if (article.id === index) {
+      return currentArticle = article;
+    }
+  });
 }
 
 router.get('/api/v1/users', (req, res) => {
@@ -27,80 +37,105 @@ router.get('/api/v1/users', (req, res) => {
 router.get('/api/v1/users/:id', (req, res) => {
   res.writeHeader(200, { 'Content-Type': 'application/json' });
   currentIndex(req.url);
-  currentUser(index);
+  findCurrentUser(index);
 
-  res.end(JSON.stringify({ data: current }));
+  res.end(JSON.stringify({ data: currentUser }));
 });
 
 router.post('/api/v1/users', async (req, res) => {
   res.writeHeader(200, { 'Content-Type': 'application/json' });
 
   let id = await users.data.length > 0 ? users.data[users.data.length - 1].id + 1 : 0;
-
   let newUser = {
     id: id,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email
   }
-  await fs.writeFileSync('./users.json', JSON.stringify({ data: [...users.data, newUser] }));
+  fs.writeFileSync('./users.json', JSON.stringify({ data: [...users.data, newUser] }));
 
-  await res.end(JSON.stringify(users));
+  res.end(JSON.stringify(users));
 });
 
 router.put('/api/v1/users/:id', async (req, res) => {
   res.writeHeader(200, { 'Content-Type': 'application/json' });
   currentIndex(req.url);
-  currentUser(index);
-  await users.data.splice(index, 1);
-
-  let edited = {
+  const position = users.data.findIndex(item => item.id === index);
+  users.data[position] = {
     id: index,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email
   }
 
-  let usersArr = { data: [...users.data, edited] };
-
-  await fs.writeFileSync('./users.json', JSON.stringify({ data: usersArr.data.sort((a, b) => a.id - b.id) }));
-
-  await res.end(JSON.stringify(users));
+  fs.writeFileSync('./users.json', JSON.stringify(users));
+  res.end(JSON.stringify(users));
 });
 
 router.delete('/api/v1/users/:id', async (req, res) => {
-  // res.writeHeader(200, { 'Content-Type': 'application/json' });
-  // currentIndex(req.url);
-  // currentUser(index);
-  // await users.data.splice(index, 1);
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+  currentIndex(req.url);
+  const position = users.data.findIndex(item => item.id === index);
+  await users.data.splice(position, 1);
 
-  // console.log(index, 'delete');
-
-  // await fs.writeFileSync('./users.json', JSON.stringify({ data: [...users.data] }));
-
-  // await res.end();
+  fs.writeFileSync('./users.json', JSON.stringify(users));
+  res.end(JSON.stringify(users));
 });
 
 router.get('/api/v1/blog', (req, res) => {
-  res.status(200).send('hello users');
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(articles));
 });
 
 router.get('/api/v1/blog/:id', (req, res) => {
-  res.status(200).send('hello users id');
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+  currentIndex(req.url);
+  findCurrentArticle(index);
+
+  res.end(JSON.stringify({ data: currentArticle }));
 });
 
-router.post('/api/v1/blog', (req, res) => {
-  res.status(201).send('post');
+router.post('/api/v1/blog', async(req, res) => {
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+
+  let id = await articles.data.length > 0 ? articles.data[articles.data.length - 1].id + 1 : 0;
+  let newArticle = {
+    id: id,
+    title: req.body.title,
+    content: req.body.content,
+    author: req.body.author,
+    publishedAt: req.body.publishedAt
+  }
+  fs.writeFileSync('./articles.json', JSON.stringify({ data: [...articles.data, newArticle] }));
+
+  res.end(JSON.stringify(articles));
 });
 
 router.put('/api/v1/blog/:id', (req, res) => {
-  res.status(200).send('hello put');
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+  currentIndex(req.url);
 
+  const position = articles.data.findIndex(item => item.id === index);
+  articles.data[position] = {
+    id: index,
+    title: req.body.title,
+    content: req.body.content,
+    author: req.body.author,
+    publishedAt: req.body.publishedAt
+  }
+
+  fs.writeFileSync('./articles.json', JSON.stringify(articles));
+  res.end(JSON.stringify(articles));
 });
 
-router.delete('/api/v1/blog/:id', (req, res) => {
-  res.status(200).send('hello delete');
+router.delete('/api/v1/blog/:id', async(req, res) => {
+  res.writeHeader(200, { 'Content-Type': 'application/json' });
+  currentIndex(req.url);
+  const position = articles.data.findIndex(item => item.id === index);
+  await articles.data.splice(position, 1);
 
+  fs.writeFileSync('./articles.json', JSON.stringify(articles));
+  res.end(JSON.stringify(articles));
 });
 
 router.get('*', (req, res) => {
