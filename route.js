@@ -5,6 +5,7 @@ const router = express.Router();
 
 const users = require('./users');
 const articles = require('./articles');
+
 let currentUser = '';
 let index = null;
 let currentArticle = '';
