@@ -3,9 +3,8 @@ const https = require('https');
 const fs = require('fs');
 const router = express.Router();
 
-const users = require('./users');
-const articles = require('./articles');
-
+let users = require('./users');
+let articles = require('./articles');
 let currentUser = '';
 let index = null;
 let currentArticle = '';
@@ -34,7 +33,6 @@ router.get('/api/v1/users', (req, res) => {
   try {
     res.writeHeader(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(users));
-
   } catch (err) { new Error(); }
 });
 
@@ -50,22 +48,24 @@ router.get('/api/v1/users/:id', (req, res) => {
 
 router.post('/api/v1/users', async (req, res) => {
   try {
-    res.writeHeader(200, { 'Content-Type': 'application/json' });
+    await res.writeHeader(200, { 'Content-Type': 'application/json' });
 
-    let id = await users.data.length > 0 ? users.data[users.data.length - 1].id + 1 : 0;
-    let newUser = {
+    const id = users.data.length > 0 ? users.data[users.data.length - 1].id + 1 : 0;
+    const newUser = {
       id: id,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email
     }
-    fs.writeFileSync('./users.json', JSON.stringify({ data: [...users.data, newUser] }));
 
-    res.end(JSON.stringify(users));
+    users = { data: [...users.data, newUser] };
+
+    await fs.writeFileSync('./users.json', JSON.stringify(users));
+    await res.end(JSON.stringify(users));
   } catch (err) { new Error(); }
 });
 
-router.put('/api/v1/users/:id', async (req, res) => {
+router.put('/api/v1/users/:id', (req, res) => {
   try {
     res.writeHeader(200, { 'Content-Type': 'application/json' });
     currentIndex(req.url);
@@ -113,19 +113,21 @@ router.get('/api/v1/blog/:id', (req, res) => {
 
 router.post('/api/v1/blog', async (req, res) => {
   try {
-    res.writeHeader(200, { 'Content-Type': 'application/json' });
+    await res.writeHeader(200, { 'Content-Type': 'application/json' });
 
-    let id = await articles.data.length > 0 ? articles.data[articles.data.length - 1].id + 1 : 0;
-    let newArticle = {
+    const id = articles.data.length > 0 ? articles.data[articles.data.length - 1].id + 1 : 0;
+    const newArticle = {
       id: id,
       title: req.body.title,
       content: req.body.content,
       author: req.body.author,
       publishedAt: req.body.publishedAt
     }
-    fs.writeFileSync('./articles.json', JSON.stringify({ data: [...articles.data, newArticle] }));
 
-    res.end(JSON.stringify(articles));
+    articles = { data: [...articles.data, newArticle] };
+
+    await fs.writeFileSync('./articles.json', JSON.stringify(articles));
+    await res.end(JSON.stringify(articles));
   } catch (err) { new Error(); }
 });
 
