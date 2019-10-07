@@ -23,9 +23,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm test",
-      "pre-push": "npm test",
-      "...": "..."
+      "pre-commit": "eslint ."
     }
   },
   "homepage": "https://github.com/petulant-annie/homework5#readme",

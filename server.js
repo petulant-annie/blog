@@ -12,7 +12,7 @@ app.use(cors());
 
 app.use(express.static(`${process.env.FRONTED_URL}`));
 app.use('/', router);
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   res.status(500);
   res.send(err);
 });
