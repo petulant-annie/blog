@@ -12,8 +12,7 @@ app.use(cors());
 
 app.use('/', router);
 app.use((err, req, res) => {
-  res.status(500);
-  res.send(err);
+  res.status(500).send(err, 'Error');
 });
 
 app.listen(process.env.PORT || 3043, () => console.log('Server started on port 3043'));
