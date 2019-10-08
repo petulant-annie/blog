@@ -7,7 +7,6 @@ class App {
 
   use(middleware) {
     this.middlewares.push(middleware);
-    console.log(this.middlewares);
   }
 
   handle(req, res) {
