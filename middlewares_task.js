@@ -9,12 +9,11 @@ class App {
     this.middlewares.push(middleware);
   }
 
-  async handle(req, res) {
-    await this.middlewares[0](req, res, () => {
-      this.middlewares[1](req, res, () => {
-        this.middlewares[2](req, res);
-      });
+  handle(req, res) {
+    this.chain = this.middlewares.map((item, i) => {
+      return () => item(req, res, () => this.chain[i + 1](req, res));
     });
+    this.chain[0]();
   }
 }
 

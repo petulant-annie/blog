@@ -4,17 +4,8 @@ const uuidv1 = require('uuid/v1');
 const usersRouter = express.Router();
 
 const users = require('../users');
-let currentUser = '';
-
-function findCurrentUser(index) {
-  users.data.find(user => {
-    user.id === index ? currentUser = user : new Error();
-  });
-}
-
-function writeData(path, data) {
-  fs.writeFile(path, JSON.stringify(data), (err) => { if (err) { throw err } });
-}
+const writeData = require('../models/writeData');
+const findById = require('../models/findById');
 
 usersRouter.get('/', (req, res, next) => {
   try {
@@ -28,8 +19,7 @@ usersRouter.get('/', (req, res, next) => {
 
 usersRouter.get('/:id', (req, res, next) => {
   try {
-    findCurrentUser(req.params.id);
-    res.send({ data: currentUser });
+    res.send({ data: findById(req.params.id, users) });
   } catch (err) { next(err); }
 });
 
@@ -41,7 +31,7 @@ usersRouter.post('/', async (req, res, next) => {
       lastName: req.body.lastName,
       email: req.body.email
     }
-    let updUsers = { data: [newUser, ...users.data] };
+    const updUsers = { data: [newUser, ...users.data] };
     writeData('./users.json', updUsers);
     await res.send({ data: [newUser] });
   } catch (err) { next(err); }

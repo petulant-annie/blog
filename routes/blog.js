@@ -4,17 +4,8 @@ const uuidv1 = require('uuid/v1');
 const articlesRouter = express.Router();
 
 const articles = require('../articles');
-let currentArticle = '';
-
-function findCurrentArticle(index) {
-  articles.data.find(article => {
-    article.id === index ? currentArticle = article : new Error();
-  });
-}
-
-function writeData(path, data) {
-  fs.writeFile(path, JSON.stringify(data), (err) => { if (err) { throw err } });
-}
+const writeData = require('../models/writeData');
+const findById = require('../models/findById');
 
 articlesRouter.get('/', (req, res, next) => {
   try {
@@ -28,8 +19,8 @@ articlesRouter.get('/', (req, res, next) => {
 
 articlesRouter.get('/:id', (req, res, next) => {
   try {
-    findCurrentArticle(req.params.id);
-    res.send({ data: currentArticle });
+    findById(req.params.id, articles);
+    res.send({ data: findById(req.params.id, articles) });
   } catch (err) { next(err); }
 });
 
