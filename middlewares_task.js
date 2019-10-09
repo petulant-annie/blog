@@ -9,11 +9,12 @@ class App {
     this.middlewares.push(middleware);
   }
 
-  handle(req, res) {
-    this.middlewares = this.middlewares.map((middleware, i) => {
-      return () => middleware(req, res, () => this.middlewares[i + 1](req, res));
+  async handle(req, res) {
+    await this.middlewares[0](req, res, () => {
+      this.middlewares[1](req, res, () => {
+        this.middlewares[2](req, res);
+      });
     });
-    this.middlewares[0]();
   }
 }
 
@@ -33,7 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res) => {
+app.use((req, res, next) => {
   console.log('middleware 3');
   res.end('Hello');
 });
