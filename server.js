@@ -1,12 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const dotenv = require('dotenv');
+require('dotenv').config();
 
-const router = require('./route');
+const router = require('./routes/main');
 
 const app = express();
-dotenv.config();
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -15,4 +14,4 @@ app.use((err, req, res) => {
   res.status(500).send(err, 'Error');
 });
 
-app.listen(process.env.PORT || 3043, () => console.log('Server started on port 3043'));
+app.listen(process.env.PORT || 3000, () => console.log('Server started on port 3043'));
