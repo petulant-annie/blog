@@ -34,7 +34,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
+app.use((req, res) => {
   console.log('middleware 3');
   res.end('Hello');
 });
