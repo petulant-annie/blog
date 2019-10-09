@@ -4,8 +4,8 @@ const uuidv1 = require('uuid/v1');
 const usersRouter = express.Router();
 
 const users = require('../users');
-const writeData = require('../models/writeData');
-const findById = require('../models/findById');
+const writeData = require('../modules/writeData');
+const findById = require('../modules/findById');
 
 usersRouter.get('/', (req, res, next) => {
   try {
