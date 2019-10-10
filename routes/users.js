@@ -30,9 +30,9 @@ usersRouter.post('/', async (req, res, next) => {
       lastName: req.body.lastName,
       email: req.body.email,
     }
-    await users.data.unshift(newUser);
-    writeData('./users.json', users);
-    await res.send({ data: [newUser] });
+    users.data.unshift(newUser);
+    await writeData('./users.json', users);
+    res.send({ data: [newUser] });
   } catch (err) { next(err); }
 });
 
@@ -45,17 +45,17 @@ usersRouter.put('/:id', async (req, res, next) => {
       lastName: req.body.lastName,
       email: req.body.email,
     }
-    writeData('./users.json', users);
-    await res.send({ data: [users.data[position]] });
+    await writeData('./users.json', users);
+    res.send({ data: [users.data[position]] });
   } catch (err) { next(err); }
 });
 
 usersRouter.delete('/:id', async (req, res, next) => {
   try {
     const position = users.data.findIndex(item => item.id === req.params.id);
-    await users.data.splice(position, 1);
-    writeData('./users.json', users);
-    await res.send(users);
+    users.data.splice(position, 1);
+    await writeData('./users.json', users);
+    res.send(users);
   } catch (err) { next(err); }
 });
 
