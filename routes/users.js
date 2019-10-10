@@ -4,13 +4,12 @@ const uuidv1 = require('uuid/v1');
 const usersRouter = express.Router();
 
 const users = require('../users');
-const writeData = require('../modules/writeData');
-const findById = require('../modules/findById');
+const { findById, writeData } = require('../modules/helpers');
 
 usersRouter.get('/', (req, res, next) => {
   try {
     fs.readFile('./users.json', 'utf8', (err, data) => {
-      if (err) { throw err }
+      if (err) { throw err; }
       res.send(data);
     });
   }
@@ -29,10 +28,10 @@ usersRouter.post('/', async (req, res, next) => {
       id: uuidv1(),
       firstName: req.body.firstName,
       lastName: req.body.lastName,
-      email: req.body.email
+      email: req.body.email,
     }
-    const updUsers = { data: [newUser, ...users.data] };
-    writeData('./users.json', updUsers);
+    await users.data.unshift(newUser);
+    writeData('./users.json', users);
     await res.send({ data: [newUser] });
   } catch (err) { next(err); }
 });
@@ -44,7 +43,7 @@ usersRouter.put('/:id', async (req, res, next) => {
       id: req.params.id,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
-      email: req.body.email
+      email: req.body.email,
     }
     writeData('./users.json', users);
     await res.send({ data: [users.data[position]] });

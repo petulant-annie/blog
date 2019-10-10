@@ -4,13 +4,12 @@ const uuidv1 = require('uuid/v1');
 const articlesRouter = express.Router();
 
 const articles = require('../articles');
-const writeData = require('../modules/writeData');
-const findById = require('../modules/findById');
+const { findById, writeData } = require('../modules/helpers');
 
-articlesRouter.get('/', (req, res, next) => {
+articlesRouter.get('/', async (req, res, next) => {
   try {
     fs.readFile('./articles.json', 'utf8', (err, data) => {
-      if (err) { throw err }
+      if (err) { throw err; }
       res.send(data);
     });
   }
@@ -31,11 +30,10 @@ articlesRouter.post('/', async (req, res, next) => {
       title: req.body.title,
       content: req.body.content,
       author: req.body.author,
-      publishedAt: req.body.publishedAt
+      publishedAt: req.body.publishedAt,
     }
-
-    const articlesArr = { data: [newArticle, ...articles.data] };
-    writeData('./articles.json', articlesArr);
+    await articles.data.unshift(newArticle);
+    writeData('./articles.json', articles);
     await res.send({ data: [newArticle] });
   } catch (err) { next(err); }
 });
