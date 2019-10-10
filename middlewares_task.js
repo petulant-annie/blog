@@ -10,9 +10,7 @@ class App {
   }
 
   handle(req, res) {
-    this.chain = this.middlewares.map((item, i) => {
-      return () => item(req, res, () => this.chain[i + 1](req, res));
-    });
+    this.chain = this.middlewares.map((item, i) => () => item(req, res, this.chain[i + 1]));
     this.chain[0]();
   }
 }

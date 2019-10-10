@@ -1,5 +1,5 @@
 {
-  "name": "homework5",
+  "name": "blog",
   "version": "1.0.0",
   "description": "REST style server",
   "main": "server.js",
