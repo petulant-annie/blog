@@ -1,67 +1,65 @@
 const express = require('express');
-const fs = require('fs');
-const uuidv1 = require('uuid/v1');
+const sequelize = require('../dbConnection');
 const articlesRouter = express.Router();
 
-const articles = require('../articles');
-const { findById, writeData } = require('../modules/helpers');
+const User = require('../models/user');
+const Article = require('../models/article');
 
 articlesRouter.get('/', (req, res, next) => {
-  try {
-    fs.readFile('./articles.json', 'utf8', (err, data) => {
-      if (err) { throw err; }
-      res.send(data);
-    });
-  }
-  catch (err) { next(err); }
+  Article.findAll({ raw: true })
+    .then(article => res.send({ data: article }))
+    .catch(err => next(err))
 });
 
 articlesRouter.get('/:id', (req, res, next) => {
-  try {
-    findById(req.params.id, articles);
-    res.send({ data: findById(req.params.id, articles) });
-  } catch (err) { next(err); }
+  Article.findAll({ where: { id: req.params.id }, raw: true })
+    .then(article => res.send({ data: article[0] }))
+    .catch(err => next(err));
 });
 
 articlesRouter.post('/', async (req, res, next) => {
-  try {
-    const newArticle = {
-      id: uuidv1(),
-      title: req.body.title,
-      content: req.body.content,
-      author: req.body.author,
-      publishedAt: req.body.publishedAt,
-    }
-    articles.data.unshift(newArticle);
-    await writeData('./articles.json', articles);
-    res.send({ data: [newArticle] });
-  } catch (err) { next(err); }
+
+  User.findAll({ raw: true })
+    .then(user => res.send({ data: user }))
+    .catch(err => next(err));
+
+  Article.create({
+    title: req.body.title,
+    content: req.body.content,
+    authorId: req.body.authorId,
+    publishedAt: req.body.publishedAt,
+  })
+    .then(article => res.send({ data: article }))
+    .catch(err => next(err));
+
+  sequelize.sync()
+    .catch(err => console.log(err));
 });
 
 articlesRouter.put('/:id', async (req, res, next) => {
-  try {
-    const position = articles.data.findIndex(item => item.id === req.params.id);
-    articles.data[position] = {
-      id: req.params.id,
-      title: req.body.title,
-      content: req.body.content,
-      author: req.body.author,
-      publishedAt: req.body.publishedAt
+  Article.update({
+    title: req.body.title,
+    content: req.body.content,
+    authorId: req.body.authorId,
+    publishedAt: req.body.publishedAt,
+  }, {
+    where: {
+      id: req.params.id
     }
-    await writeData('./articles.json', articles);
-    res.send({ data: [articles.data[position]] });
-  } catch (err) { next(err); }
+  }).then(article => res.send({ data: article }))
+    .catch(err => next(err));
 });
 
 articlesRouter.delete('/:id', async (req, res, next) => {
-  try {
-    const position = articles.data.findIndex(item => item.id === req.params.id);
+  Article.destroy({
+    where: {
+      id: req.params.id
+    }
+  }).catch(err => next(err));
 
-    articles.data.splice(position, 1);
-    await writeData('./articles.json', articles);
-    const articlesArr = articles.data.reverse();
-    res.send({ data: articlesArr });
-  } catch (err) { next(err); }
+  Article.findAll({ raw: true })
+    .then(article => res.send({ data: article }))
+    .catch(err => next(err));
 });
 
 module.exports = articlesRouter;
