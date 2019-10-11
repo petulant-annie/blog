@@ -26,7 +26,6 @@ articlesRouter.post('/', async (req, res, next) => {
   Article.create({
     title: req.body.title,
     content: req.body.content,
-    authorId: req.body.authorId,
     publishedAt: req.body.publishedAt,
   })
     .then(article => res.send({ data: article }))
@@ -40,7 +39,6 @@ articlesRouter.put('/:id', async (req, res, next) => {
   Article.update({
     title: req.body.title,
     content: req.body.content,
-    authorId: req.body.authorId,
     publishedAt: req.body.publishedAt,
   }, {
     where: {

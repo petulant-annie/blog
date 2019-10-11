@@ -6,6 +6,12 @@ const Article = require('../models/article');
 const User = require('../models/user');
 
 usersRouter.get('/', (req, res, next) => {
+  // Article.findAll({ where: { authorId: users.id }, raw: true })
+  //   .then(article => {
+  //     articles.push(article);
+  //   })
+  //   .catch(err => next(err));
+
   User.findAll({ raw: true })
     .then(users => res.send({ data: users }))
     .catch(err => next(err))

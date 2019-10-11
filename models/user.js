@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../dbConnection');
+const Article = require('./article');
 
 const User = sequelize.define('user', {
   id: {
@@ -26,7 +27,14 @@ const User = sequelize.define('user', {
   },
   articles: {
     type: Sequelize.INTEGER,
-  }
+  },
 });
+
+Article.associate = (models) => {
+  Article.belongsTo(models.User, {
+    as: 'author',
+    foreignKey: 'authorId'
+  })
+};
 
 module.exports = User;

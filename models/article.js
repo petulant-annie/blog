@@ -16,14 +16,17 @@ const Article = sequelize.define('article', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  authorId: {
-    type: Sequelize.INTEGER,
-    allowNull: false
-  },
   publishedAt: {
     type: Sequelize.STRING,
     allowNull: false
   }
 });
+
+Article.associate = (models) => {
+  Article.belongsTo(models.Users, {
+    as: 'author',
+    foreignKey: 'authorId'
+  })
+};
 
 module.exports = Article;
