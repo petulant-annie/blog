@@ -1,32 +1,32 @@
-const Sequelize = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../dbConnection');
 
-const Article = sequelize.define('article', {
-  id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
+class Article extends Model { }
+Article.init({
+  authorId: {
+    type: DataTypes.INTEGER,
     allowNull: false
   },
   title: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   },
   content: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   },
   publishedAt: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   }
+}, {
+  sequelize,
+  modelName: 'articles',
+  underscored: true,
 });
 
 Article.associate = (models) => {
-  Article.belongsTo(models.Users, {
-    as: 'author',
-    foreignKey: 'authorId'
-  })
+  Article.belongsTo(models.User, { as: 'author' });
 };
 
 module.exports = Article;

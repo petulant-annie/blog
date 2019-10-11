@@ -1,40 +1,41 @@
-const Sequelize = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../dbConnection');
-const Article = require('./article');
 
-const User = sequelize.define('user', {
-  id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-    allowNull: false
-  },
+class User extends Model { }
+
+User.init({
   firstName: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   },
   lastName: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   },
   email: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   },
   password: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false
   },
-  articles: {
-    type: Sequelize.INTEGER,
-  },
+}, {
+  sequelize,
+  modelName: 'users',
+  underscored: true,
+  defaultScope: {
+    attributes: {
+      exclude: ['password']
+    }
+  }
 });
 
-Article.associate = (models) => {
-  Article.belongsTo(models.User, {
-    as: 'author',
-    foreignKey: 'authorId'
-  })
+User.associate = (models) => {
+  User.hasMany(models.Article, {
+    as: 'article',
+    foreignKey: 'authorId',
+  });
 };
 
 module.exports = User;
