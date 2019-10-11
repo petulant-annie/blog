@@ -2,6 +2,7 @@ const express = require('express');
 const sequelize = require('../dbConnection');
 const usersRouter = express.Router();
 
+const Article = require('../models/article');
 const User = require('../models/user');
 
 usersRouter.get('/', (req, res, next) => {
@@ -41,6 +42,12 @@ usersRouter.put('/:id', async (req, res, next) => {
       id: req.params.id
     }
   }).then(user => res.send({ data: user }))
+    .catch(err => next(err));
+});
+
+usersRouter.get('/:id/blog', (req, res, next) => {
+  Article.findAll({ where: { authorId: req.params.id }, raw: true })
+    .then(article => res.send({ data: article }))
     .catch(err => next(err));
 });
 
