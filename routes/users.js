@@ -6,19 +6,31 @@ const { User, Article } = require('../models/index');
 
 usersRouter.get('/', async (req, res, next) => {
 
-  // let articles = await Article.sequelize.query(
-  //   'SELECT "id" FROM articles WHERE "authorId" = "id"', {
-  //   replacements: ['active'], type: sequelize.QueryTypes.SELECT
-  // });
+  // let query = sequelize.query('SELECT author_id, COUNT(*) as articles FROM articles GROUP BY author_id')
+  //   .then(([results, metadata]) => results);
 
-  User.findAll()
+  User.findAll({
+    attributes: {
+      include: [
+        [User.sequelize.fn('COUNT', User.sequelize.col('title')), 'articles'],
+      ],
+    },
+    include: [
+      {
+        model: Article,
+        as: 'article',
+        attributes: [],
+      },
+    ],
+    group: ['id'],
+  })
     .then(users => res.send({ data: users }))
     .catch(err => next(err))
 });
 
 usersRouter.get('/:id', (req, res, next) => {
-  User.findAll({ where: { id: req.params.id } })
-    .then(user => res.send({ data: user[0] }))
+  User.findOne({ where: { id: req.params.id } })
+    .then(user => res.send({ data: user }))
     .catch(err => next(err));
 });
 
