@@ -4,7 +4,7 @@ const usersRouter = express.Router();
 
 const { User, Article } = require('../models/index');
 
-usersRouter.get('/', async (req, res, next) => {
+usersRouter.get('/', (req, res, next) => {
   sequelize.query(
     `SELECT users.*, COUNT(author_id) 
     AS articles FROM users LEFT JOIN articles 
