@@ -5,27 +5,12 @@ const usersRouter = express.Router();
 const { User, Article } = require('../models/index');
 
 usersRouter.get('/', async (req, res, next) => {
-
-  // let query = sequelize.query('SELECT author_id, COUNT(*) as articles FROM articles GROUP BY author_id')
-  //   .then(([results, metadata]) => console.log(results));
-
-  User.findAll({
-    attributes: {
-      include: [
-        [User.sequelize.fn('COUNT', User.sequelize.col('title')), 'articles'],
-      ],
-    },
-    include: [
-      {
-        model: Article,
-        as: 'article',
-        attributes: [],
-      },
-    ],
-    group: ['id'],
-  })
-    .then(users => res.send({ data: users }))
-    .catch(err => next(err))
+  sequelize.query(
+    `SELECT users.*, COUNT(author_id) 
+    AS articles FROM users LEFT JOIN articles 
+    ON articles.author_id=users.id GROUP BY users.id`)
+    .then(([results]) => res.send({ data: results }))
+    .catch(err => next(err));
 });
 
 usersRouter.get('/:id', (req, res, next) => {

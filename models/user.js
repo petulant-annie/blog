@@ -6,10 +6,12 @@ class User extends Model { }
 
 User.init({
   firstName: {
+    field: 'firstName',
     type: DataTypes.STRING,
     allowNull: false
   },
   lastName: {
+    field: 'lastName',
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -35,7 +37,7 @@ User.init({
 User.associate = (models) => {
   User.hasMany(models.Article, {
     as: 'article',
-    foreignKey: 'authorId',
+    foreignKey: 'author_id',
   });
 };
 
