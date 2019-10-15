@@ -7,7 +7,7 @@ const { User, Article } = require('../models/index');
 usersRouter.get('/', async (req, res, next) => {
 
   // let query = sequelize.query('SELECT author_id, COUNT(*) as articles FROM articles GROUP BY author_id')
-  //   .then(([results, metadata]) => results);
+  //   .then(([results, metadata]) => console.log(results));
 
   User.findAll({
     attributes: {
