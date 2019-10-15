@@ -14,12 +14,11 @@ articlesRouter.get('/', (req, res, next) => {
 });
 
 articlesRouter.get('/:id', (req, res, next) => {
-  Article.findAll({
-    order: [['id', 'DESC']],
+  Article.findOne({
     include: [{ model: User, as: 'author' }],
     where: { id: req.params.id }
   })
-    .then(article => res.send({ data: article[0] }))
+    .then(article => res.send({ data: article }))
     .catch(err => next(err));
 });
 
