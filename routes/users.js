@@ -19,18 +19,16 @@ usersRouter.get('/:id', (req, res, next) => {
     .catch(err => next(err));
 });
 
-usersRouter.post('/', async (req, res, next) => {
-  await User.create({
+usersRouter.post('/', (req, res, next) => {
+  User.create({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
     password: req.body.password,
   })
     .then(user => res.send({ data: user }))
+    .then(() => sequelize.sync())
     .catch(err => next(err));
-
-  await sequelize.sync()
-    .catch(err => console.log(err));
 });
 
 usersRouter.put('/:id', (req, res, next) => {

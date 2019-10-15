@@ -35,10 +35,8 @@ articlesRouter.post('/', async (req, res, next) => {
     publishedAt: req.body.publishedAt,
   })
     .then(article => res.send({ data: article }))
+    .then(() => sequelize.sync())
     .catch(err => next(err));
-
-  await sequelize.sync()
-    .catch(err => console.log(err));
 });
 
 articlesRouter.put('/:id', (req, res, next) => {
