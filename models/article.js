@@ -3,10 +3,6 @@ const sequelize = require('../dbConnection');
 
 class Article extends Model { }
 Article.init({
-  authorId: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
   title: {
     type: DataTypes.STRING,
     allowNull: false

@@ -1,5 +1,4 @@
 const express = require('express');
-const sequelize = require('../dbConnection');
 const articlesRouter = express.Router();
 
 const { User, Article } = require('../models/index');
@@ -34,7 +33,6 @@ articlesRouter.post('/', async (req, res, next) => {
     publishedAt: req.body.publishedAt,
   })
     .then(article => res.send({ data: article }))
-    .then(() => sequelize.sync())
     .catch(err => next(err));
 });
 

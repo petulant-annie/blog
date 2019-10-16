@@ -6,10 +6,10 @@ const { User, Article } = require('../models/index');
 
 usersRouter.get('/', (req, res, next) => {
   sequelize.query(
-    `SELECT users.*, COUNT(author_id) 
+    `select users.*, COUNT(authorId) 
     AS articles FROM users LEFT JOIN articles 
-    ON articles.author_id=users.id GROUP BY users.id`)
-    .then(([results]) => res.send({ data: results }))
+    ON articles.authorId=users.id GROUP BY users.id`)
+    .then(results => res.send({ data: results }))
     .catch(err => next(err));
 });
 
@@ -27,7 +27,6 @@ usersRouter.post('/', (req, res, next) => {
     password: req.body.password,
   })
     .then(user => res.send({ data: user }))
-    .then(() => sequelize.sync())
     .catch(err => next(err));
 });
 
