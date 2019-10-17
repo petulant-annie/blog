@@ -9,7 +9,7 @@ usersRouter.get('/', (req, res, next) => {
     `select users.*, COUNT(authorId) 
     AS articles FROM users LEFT JOIN articles 
     ON articles.authorId=users.id GROUP BY users.id`)
-    .then(results => res.send({ data: results }))
+    .then(([results]) => res.send({ data: results }))
     .catch(err => next(err));
 });
 
@@ -20,6 +20,7 @@ usersRouter.get('/:id', (req, res, next) => {
 });
 
 usersRouter.post('/', (req, res, next) => {
+  console.log(req.body);
   User.create({
     firstName: req.body.firstName,
     lastName: req.body.lastName,

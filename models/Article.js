@@ -18,7 +18,6 @@ Article.init({
 }, {
   sequelize,
   modelName: 'articles',
-  underscored: true,
 });
 
 Article.associate = (models) => {
