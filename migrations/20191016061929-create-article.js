@@ -26,6 +26,8 @@ module.exports = {
       },
       authorId: {
         type: Sequelize.INTEGER,
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
         references: {
           model: {
             tableName: 'users'
