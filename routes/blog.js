@@ -21,18 +21,17 @@ articlesRouter.get('/:id', (req, res, next) => {
     .catch(err => next(err));
 });
 
-articlesRouter.post('/', async (req, res, next) => {
-  await User.findAll()
-    .then(user => res.send({ data: user }))
-    .catch(err => next(err));
-
-  await Article.create({
-    title: req.body.title,
-    content: req.body.content,
-    authorId: req.body.authorId,
-    publishedAt: req.body.publishedAt,
-  })
-    .then(article => res.send({ data: article }))
+articlesRouter.post('/', (req, res, next) => {
+  User.findAll()
+    .then(user => {
+      Article.create({
+        title: req.body.title,
+        content: req.body.content,
+        authorId: req.body.authorId,
+        publishedAt: req.body.publishedAt,
+      })
+      res.send({ data: user })
+    })
     .catch(err => next(err));
 });
 

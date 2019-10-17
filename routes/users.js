@@ -20,7 +20,6 @@ usersRouter.get('/:id', (req, res, next) => {
 });
 
 usersRouter.post('/', (req, res, next) => {
-  console.log(req.body);
   User.create({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
