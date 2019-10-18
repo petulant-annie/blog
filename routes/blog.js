@@ -22,16 +22,13 @@ articlesRouter.get('/:id', (req, res, next) => {
 });
 
 articlesRouter.post('/', (req, res, next) => {
-  User.findAll()
-    .then(user => {
-      Article.create({
-        title: req.body.title,
-        content: req.body.content,
-        authorId: req.body.authorId,
-        publishedAt: req.body.publishedAt,
-      })
-      res.send({ data: user })
-    })
+  Article.create({
+    title: req.body.title,
+    content: req.body.content,
+    authorId: req.body.authorId,
+    publishedAt: req.body.publishedAt,
+  })
+    .then(article => res.send({ data: article }))
     .catch(err => next(err));
 });
 
