@@ -13,6 +13,8 @@ articlesRouter.get('/', (req, res, next) => {
 });
 
 articlesRouter.get('/:id', (req, res, next) => {
+
+
   Article.findOne({
     include: [{ model: User, as: 'author' }],
     where: { id: req.params.id }
