@@ -67,7 +67,6 @@ usersRouter.get('/:id/blog', async (req, res, next) => {
     })
 
     const articlesViews = await Views.find({}, (err, result) => {
-      mongoose.disconnect();
       if (err) { return console.log(err); }
       return result;
     });

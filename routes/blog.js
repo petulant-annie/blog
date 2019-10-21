@@ -12,11 +12,10 @@ articlesRouter.get('/', async (req, res, next) => {
       order: [['id', 'DESC']],
       include: [{ model: User, as: 'author' }],
       raw: true,
-      nest : true,
+      nest: true,
     });
 
     const articlesViews = await Views.find({}, (err, result) => {
-      mongoose.disconnect();
       if (err) { return console.log(err); }
       return result;
     });
@@ -41,14 +40,13 @@ articlesRouter.get('/:id', async (req, res, next) => {
       include: [{ model: User, as: 'author' }],
       where: { id: req.params.id },
       raw: true,
-      nest : true,
+      nest: true,
     })
 
     const viewsCount = await Views.findOneAndUpdate({
       articleId: req.params.id,
       authorId: article.author.id,
     }, { $set: { views: articlesViews.views + 1 } }, { new: true }, (err, result) => {
-      mongoose.disconnect();
       if (err) { return console.log(err); }
       return result.views;
     })
@@ -72,7 +70,6 @@ articlesRouter.post('/', async (req, res, next) => {
       authorId: article.authorId,
       views: 0,
     }, (err, result) => {
-      mongoose.disconnect();
       if (err) { return console.log(err) }
       return result;
     });
@@ -103,7 +100,14 @@ articlesRouter.delete('/:id', async (req, res, next) => {
     const article = await Article.destroy({
       where: { id: req.params.id }
     });
-    
+
+    await Views.findOneAndRemove({
+      articleId: req.params.id,
+    }, (err, result) => {
+      if (err) { return console.log(err); }
+      return result;
+    })
+
     res.send({ data: article })
   } catch (err) { next(err) }
 });
