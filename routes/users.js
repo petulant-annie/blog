@@ -33,17 +33,17 @@ usersRouter.get('/', async (req, res, next) => {
       });
       let reduce = count.reduce((total, amount) => total + amount);
 
-      return { ...item, viewsCount: reduce }
+      return { ...item, viewsCount: reduce };
     });
 
-    res.send({ data: mapped })
+    res.send({ data: mapped });
   } catch (err) { next(err) }
 });
 
 usersRouter.get('/:id', async (req, res, next) => {
   try {
-    const user = await User.findOne({ where: { id: req.params.id } })
-    res.send({ data: user })
+    const user = await User.findOne({ where: { id: req.params.id } });
+    res.send({ data: user });
   } catch (err) { next(err) }
 });
 
@@ -55,7 +55,7 @@ usersRouter.post('/', async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
     })
-    res.send({ data: user })
+    res.send({ data: user });
   } catch (err) { next(err) }
 });
 
@@ -92,10 +92,10 @@ usersRouter.get('/:id/blog', async (req, res, next) => {
 
     const mapped = article.map(item => {
       const viewsElement = articlesViews.find(element => element.articleId === item.id);
-      return { ...item, views: viewsElement.views }
+      return { ...item, views: viewsElement.views };
     });
 
-    res.send({ data: mapped })
+    res.send({ data: mapped });
   } catch (err) { next(err) }
 });
 
@@ -113,7 +113,7 @@ usersRouter.delete('/:id', async (req, res, next) => {
       return result;
     })
 
-    res.send({ data: users })
+    res.send({ data: users });
   } catch (err) { next(err) }
 });
 

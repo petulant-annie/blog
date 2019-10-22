@@ -27,7 +27,7 @@ articlesRouter.get('/', async (req, res, next) => {
       return { ...item, views: viewsElement.views }
     });
 
-    res.send({ data: mapped })
+    res.send({ data: mapped });
   } catch (err) { next(err) }
 });
 
@@ -44,7 +44,7 @@ articlesRouter.get('/:id', async (req, res, next) => {
       where: { id: req.params.id },
       raw: true,
       nest: true,
-    })
+    });
 
     const viewsCount = await Views.findOneAndUpdate({
       articleId: req.params.id,
@@ -59,7 +59,7 @@ articlesRouter.get('/:id', async (req, res, next) => {
       return result.views;
     })
 
-    res.send({ data: Object.assign(article, { views: viewsCount.views }) })
+    res.send({ data: Object.assign(article, { views: viewsCount.views }) });
 
   } catch (err) { next(err) }
 });
@@ -83,7 +83,7 @@ articlesRouter.post('/', async (req, res, next) => {
       return result;
     });
 
-    res.send({ data: article })
+    res.send({ data: article });
   } catch (err) { next(err) }
 });
 
@@ -101,7 +101,7 @@ articlesRouter.put('/:id', async (req, res, next) => {
       }
     });
 
-    res.send({ data: article })
+    res.send({ data: article });
   } catch (err) { next(err) }
 });
 
@@ -119,7 +119,7 @@ articlesRouter.delete('/:id', async (req, res, next) => {
       return result;
     })
 
-    res.send({ data: article })
+    res.send({ data: article });
   } catch (err) { next(err) }
 });
 
