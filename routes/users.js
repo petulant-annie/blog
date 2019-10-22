@@ -86,6 +86,14 @@ usersRouter.delete('/:id', async (req, res, next) => {
     const users = await User.destroy({
       where: { id: req.params.id }
     });
+
+    await Views.deleteMany({
+      authorId: req.params.id,
+    }, (err, result) => {
+      if (err) { return console.log(err); }
+      return result;
+    })
+
     res.send({ data: users })
   } catch (err) { next(err) }
 });
