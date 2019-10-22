@@ -19,19 +19,17 @@ app.use((err, req, res) => {
   res.status(500).send(err, 'Error');
 });
 
-logger.error('Error');
-
 sequelize
   .authenticate()
   .then(() => {
-    console.log('Connection has been established successfully.');
+    logger.info('Connection has been established successfully.');
     mongoose.connect(`${process.env.MONGO_DB}`,
       { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
         if (err) { return console.log(err) }
-        app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+        app.listen(PORT, () => logger.info(`Server started on port ${PORT}`));
       });
   })
   .catch(err => {
-    console.error('Unable to connect to the database:', err);
+    logger.error('Unable to connect to the database:', err);
   })
   .done();

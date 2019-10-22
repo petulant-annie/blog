@@ -26,12 +26,17 @@ let options = {
   database: {
     db: `${process.env.MONGO_DB}`,
     levels: winston.config.syslog.levels,
+    options: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }
   }
 };
 
 module.exports.logger = new winston.createLogger({
   levels: winston.config.npm.levels,
   transports: [
+    new winston.transports.Console(),
     new winston.transports.DailyRotateFile(options.file),
     new winston.transports.MongoDB(options.database)
   ],

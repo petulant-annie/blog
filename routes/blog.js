@@ -7,7 +7,7 @@ const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
 
-articlesRouter.get('/', async (req, res, next) => {
+articlesRouter.get('/', async (req, res) => {
   try {
     logger.info(req, 'get all articles');
     const article = await Article.findAll({
@@ -17,10 +17,7 @@ articlesRouter.get('/', async (req, res, next) => {
       nest: true,
     });
 
-    const articlesViews = await Views.find({}, (err, result) => {
-      if (err) { return console.log(err); }
-      return result;
-    });
+    const articlesViews = await Views.find({});
 
     const mapped = article.map(item => {
       const viewsElement = articlesViews.find(element => element.articleId === item.id);
@@ -28,43 +25,43 @@ articlesRouter.get('/', async (req, res, next) => {
     });
 
     res.send({ data: mapped });
-  } catch (err) { next(err) }
+  } catch (err) { logger.error(err); }
 });
 
-articlesRouter.get('/:id', async (req, res, next) => {
+articlesRouter.get('/:id', async (req, res) => {
   try {
     logger.info(req, `get ${req.params.id} article`);
-    const articlesViews = await Views.findOne({ articleId: req.params.id }, (err, result) => {
-      if (err) { return console.log(err); }
-      return result;
-    })
+    if (req.params.id.length < 1) {
+      res.status(500).send('No such article');
+    } else {
+      const articlesViews = await Views.findOne({ articleId: req.params.id });
 
-    const article = await Article.findOne({
-      include: [{ model: User, as: 'author' }],
-      where: { id: req.params.id },
-      raw: true,
-      nest: true,
-    });
+      const article = await Article.findOne({
+        include: [{ model: User, as: 'author' }],
+        where: { id: req.params.id },
+        raw: true,
+        nest: true,
+      });
 
-    const viewsCount = await Views.findOneAndUpdate({
-      articleId: req.params.id,
-      authorId: article.author.id,
-    }, {
-      $set: { views: articlesViews.views + 1 }
-    }, {
-      new: true,
-      useNewUrlParser: true
-    }, (err, result) => {
-      if (err) { return console.log(err); }
-      return result.views;
-    })
-
-    res.send({ data: Object.assign(article, { views: viewsCount.views }) });
-
-  } catch (err) { next(err) }
+      if (articlesViews === null) {
+        res.status(500).send('No such article');
+      } else {
+        const viewsCount = await Views.findOneAndUpdate({
+          articleId: req.params.id,
+          authorId: article.author.id,
+        }, {
+          $set: { views: articlesViews.views + 1 }
+        }, {
+          new: true,
+          useNewUrlParser: true
+        });
+        res.send({ data: { ...article, views: viewsCount.views } });
+      }
+    }
+  } catch (err) { logger.error(err); }
 });
 
-articlesRouter.post('/', async (req, res, next) => {
+articlesRouter.post('/', async (req, res) => {
   try {
     logger.info(req, 'create new article');
     const article = await Article.create({
@@ -78,16 +75,13 @@ articlesRouter.post('/', async (req, res, next) => {
       articleId: article.id,
       authorId: article.authorId,
       views: 0,
-    }, (err, result) => {
-      if (err) { return console.log(err) }
-      return result;
     });
 
     res.send({ data: article });
-  } catch (err) { next(err) }
+  } catch (err) { logger.error(err); }
 });
 
-articlesRouter.put('/:id', async (req, res, next) => {
+articlesRouter.put('/:id', async (req, res) => {
   try {
     logger.info(req, `change ${req.params.id} article`);
     const article = await Article.update({
@@ -102,10 +96,10 @@ articlesRouter.put('/:id', async (req, res, next) => {
     });
 
     res.send({ data: article });
-  } catch (err) { next(err) }
+  } catch (err) { logger.error(err); }
 });
 
-articlesRouter.delete('/:id', async (req, res, next) => {
+articlesRouter.delete('/:id', async (req, res) => {
   try {
     logger.info(req, `delete ${req.params.id} article`);
     const article = await Article.destroy({
@@ -114,13 +108,12 @@ articlesRouter.delete('/:id', async (req, res, next) => {
 
     await Views.findOneAndRemove({
       articleId: req.params.id,
-    }, { useNewUrlParser: true }, (err, result) => {
-      if (err) { return console.log(err); }
-      return result;
-    })
+    }, {
+      useNewUrlParser: true
+    });
 
     res.send({ data: article });
-  } catch (err) { next(err) }
+  } catch (err) { logger.error(err); }
 });
 
 module.exports = articlesRouter;
