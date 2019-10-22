@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const sequelize = require('../dbConnection');
+const logger = require('../logger').logger;
 const usersRouter = express.Router();
 
 const { User, Article } = require('../models/index');
@@ -11,14 +12,31 @@ usersRouter.get('/', async (req, res, next) => {
   try {
     const users = await sequelize.query(
       `select users.*, COUNT(authorId) 
-    AS articles FROM users LEFT JOIN articles 
+    AS articlesCount FROM users LEFT JOIN articles 
     ON articles.authorId=users.id GROUP BY users.id`,
       {
         raw: true,
         nest: true,
       });
 
-    res.send({ data: users })
+    const articlesViews = await Views.find({}, (err, result) => {
+      if (err) { return console.log(err); }
+      return result;
+    });
+
+    const mapped = users.map(item => {
+      let count = []
+      articlesViews.find(element => {
+        if (element.authorId === item.id) {
+          count.push(element.views);
+        }
+      });
+      let reduce = count.reduce((total, amount) => total + amount);
+
+      return { ...item, viewsCount: reduce }
+    });
+
+    res.send({ data: mapped })
   } catch (err) { next(err) }
 });
 
@@ -83,6 +101,7 @@ usersRouter.get('/:id/blog', async (req, res, next) => {
 
 usersRouter.delete('/:id', async (req, res, next) => {
   try {
+    logger.info(req, `deleted ${req.params.authorId} articles`);
     const users = await User.destroy({
       where: { id: req.params.id }
     });

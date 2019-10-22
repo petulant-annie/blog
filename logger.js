@@ -33,11 +33,11 @@ module.exports.logger = new winston.createLogger({
   levels: winston.config.npm.levels,
   transports: [
     new winston.transports.DailyRotateFile(options.file),
-    new winston.transports.MongoDB(options.database, { useUnifiedTopology: true })
+    new winston.transports.MongoDB(options.database)
   ],
   exceptionHandlers: [
     new winston.transports.DailyRotateFile(options.file),
-    new winston.transports.MongoDB(options.database, { useUnifiedTopology: true })
+    new winston.transports.MongoDB(options.database)
   ],
   exitOnError: false,
 });

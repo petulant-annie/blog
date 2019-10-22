@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const logger = require('../logger').logger;
 const articlesRouter = express.Router();
 
 const { User, Article } = require('../models/index');
@@ -8,6 +9,7 @@ const Views = mongoose.model('articles_views', viewsScheme);
 
 articlesRouter.get('/', async (req, res, next) => {
   try {
+    logger.info(req, 'get all articles');
     const article = await Article.findAll({
       order: [['id', 'DESC']],
       include: [{ model: User, as: 'author' }],
@@ -31,6 +33,7 @@ articlesRouter.get('/', async (req, res, next) => {
 
 articlesRouter.get('/:id', async (req, res, next) => {
   try {
+    logger.info(req, `get ${req.params.id} article`);
     const articlesViews = await Views.findOne({ articleId: req.params.id }, (err, result) => {
       if (err) { return console.log(err); }
       return result;
@@ -49,7 +52,8 @@ articlesRouter.get('/:id', async (req, res, next) => {
     }, {
       $set: { views: articlesViews.views + 1 }
     }, {
-      new: true
+      new: true,
+      useNewUrlParser: true
     }, (err, result) => {
       if (err) { return console.log(err); }
       return result.views;
@@ -62,6 +66,7 @@ articlesRouter.get('/:id', async (req, res, next) => {
 
 articlesRouter.post('/', async (req, res, next) => {
   try {
+    logger.info(req, 'create new article');
     const article = await Article.create({
       title: req.body.title,
       content: req.body.content,
@@ -84,6 +89,7 @@ articlesRouter.post('/', async (req, res, next) => {
 
 articlesRouter.put('/:id', async (req, res, next) => {
   try {
+    logger.info(req, `change ${req.params.id} article`);
     const article = await Article.update({
       title: req.body.title,
       content: req.body.content,
@@ -101,6 +107,7 @@ articlesRouter.put('/:id', async (req, res, next) => {
 
 articlesRouter.delete('/:id', async (req, res, next) => {
   try {
+    logger.info(req, `delete ${req.params.id} article`);
     const article = await Article.destroy({
       where: { id: req.params.id }
     });
