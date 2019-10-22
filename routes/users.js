@@ -16,7 +16,8 @@ usersRouter.get('/', async (req, res, next) => {
       {
         raw: true,
         nest: true,
-      })
+      });
+
     res.send({ data: users })
   } catch (err) { next(err) }
 });
