@@ -46,7 +46,11 @@ articlesRouter.get('/:id', async (req, res, next) => {
     const viewsCount = await Views.findOneAndUpdate({
       articleId: req.params.id,
       authorId: article.author.id,
-    }, { $set: { views: articlesViews.views + 1 } }, { new: true }, (err, result) => {
+    }, {
+      $set: { views: articlesViews.views + 1 }
+    }, {
+      new: true
+    }, (err, result) => {
       if (err) { return console.log(err); }
       return result.views;
     })
@@ -103,7 +107,7 @@ articlesRouter.delete('/:id', async (req, res, next) => {
 
     await Views.findOneAndRemove({
       articleId: req.params.id,
-    }, (err, result) => {
+    }, { useNewUrlParser: true }, (err, result) => {
       if (err) { return console.log(err); }
       return result;
     })

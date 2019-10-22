@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const logger = require('./logger').logger;
 require('dotenv').config();
 
 const app = express();
@@ -17,6 +18,8 @@ app.use('/', router);
 app.use((err, req, res) => {
   res.status(500).send(err, 'Error');
 });
+
+logger.error('Error');
 
 sequelize
   .authenticate()

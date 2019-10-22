@@ -6,7 +6,7 @@ const viewsScheme = new Schema({
   authorId: Number,
   views: Number
 }, {
-  collection: 'articlesViews',
+  collection: 'articles_views',
   timestamps: {
     createdAt: 'created_at',
     updatedAt: 'updated_at',
