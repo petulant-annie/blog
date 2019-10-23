@@ -16,7 +16,8 @@ app.use(cors());
 
 app.use('/', router);
 app.use((err, req, res) => {
-  res.status(500).send(err, 'Error');
+  logger.error(err, err.message);
+  res.status(500).send(err);
 });
 
 sequelize
@@ -25,7 +26,7 @@ sequelize
     logger.info('Connection has been established successfully.');
     mongoose.connect(`${process.env.MONGO_DB}`,
       { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
-        if (err) { return console.log(err) }
+        if (err) { return logger.error(err, err.message) }
         app.listen(PORT, () => logger.info(`Server started on port ${PORT}`));
       });
   })

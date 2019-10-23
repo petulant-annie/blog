@@ -8,7 +8,7 @@ const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
 
-usersRouter.get('/', async (req, res) => {
+usersRouter.get('/', async (req, res, next) => {
   try {
     const users = await sequelize.query(
       `select users.*, COUNT(authorId) 
@@ -33,32 +33,36 @@ usersRouter.get('/', async (req, res) => {
       }
       return { ...item }
     });
+    logger.info('get all users');
 
     res.send({ data: mapped });
-
-  } catch (err) { logger.error(err, 'Error'); }
+  } catch (err) { next(err); }
 });
 
-usersRouter.get('/:id', async (req, res) => {
+usersRouter.get('/:id', async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { id: req.params.id } });
+    logger.info(`get id:${req.params.id} user`);
+
     res.send({ data: user });
-  } catch (err) { logger.error(err, 'Error'); }
+  } catch (err) { next(err); }
 });
 
-usersRouter.post('/', async (req, res) => {
+usersRouter.post('/', async (req, res, next) => {
   try {
     const user = await User.create({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       password: req.body.password,
-    })
+    });
+    logger.info('create new user');
+
     res.send({ data: user });
-  } catch (err) { logger.error(err, 'Error'); }
+  } catch (err) { next(err); }
 });
 
-usersRouter.put('/:id', async (req, res) => {
+usersRouter.put('/:id', async (req, res, next) => {
   try {
     const user = await User.update({
       firstName: req.body.firstName,
@@ -69,12 +73,14 @@ usersRouter.put('/:id', async (req, res) => {
       where: {
         id: req.params.id
       }
-    })
+    });
+    logger.info(`update ${req.body.firstName} user`);
+
     res.send({ data: user });
-  } catch (err) { logger.error(err, 'Error'); }
+  } catch (err) { next(err); }
 });
 
-usersRouter.get('/:id/blog', async (req, res) => {
+usersRouter.get('/:id/blog', async (req, res, next) => {
   try {
     const article = await Article.findAll({
       order: [['id', 'DESC']],
@@ -82,30 +88,30 @@ usersRouter.get('/:id/blog', async (req, res) => {
       where: { authorId: req.params.id },
       raw: true,
       nest: true,
-    })
-
+    });
     const articlesViews = await Views.find({}).exec();
 
     const mapped = article.map(item => {
       const viewsElement = articlesViews.find(element => element.articleId === item.id);
       return { ...item, views: viewsElement.views };
     });
+    logger.info('get user blog');
 
     res.send({ data: mapped });
-  } catch (err) { logger.error(err, 'Error'); }
+  } catch (err) { next(err); }
 });
 
-usersRouter.delete('/:id', async (req, res) => {
+usersRouter.delete('/:id', async (req, res, next) => {
   try {
-    logger.info(req, `deleted ${req.params.authorId} articles`);
     const users = await User.destroy({
       where: { id: req.params.id }
     });
 
     await Views.deleteMany({ authorId: req.params.id }).exec();
+    logger.info('delete user');
 
     res.send({ data: users });
-  } catch (err) { logger.error(err, 'Error'); }
+  } catch (err) { next(err); }
 });
 
 module.exports = usersRouter;
