@@ -1,9 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const sequelize = require('../dbConnection');
-const logger = require('../logger').logger;
 const usersRouter = express.Router();
 
+const infoLogger = require('../infoLogger').logger;
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
@@ -23,17 +23,17 @@ usersRouter.get('/', async (req, res, next) => {
 
     const mapped = await users.map(item => {
       if (articlesViews.length) {
-        let count = [0];
-        articlesViews.find(element => {
+        let count = [];
+        articlesViews.forEach(element => {
           if (element.authorId === item.id) { count.push(element.views) }
         });
-        let reduce = count.reduce((total, amount) => total + amount);
+        let reduce = count.reduce((total, amount) => { total + amount }, 0);
 
         return { ...item, viewsCount: reduce };
       }
       return { ...item }
     });
-    logger.info('get all users');
+    infoLogger.info('get all users');
 
     res.send({ data: mapped });
   } catch (err) { next(err); }
@@ -42,7 +42,7 @@ usersRouter.get('/', async (req, res, next) => {
 usersRouter.get('/:id', async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { id: req.params.id } });
-    logger.info(`get id:${req.params.id} user`);
+    infoLogger.info(`get id:${req.params.id} user`);
 
     res.send({ data: user });
   } catch (err) { next(err); }
@@ -56,7 +56,7 @@ usersRouter.post('/', async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
     });
-    logger.info('create new user');
+    infoLogger.info('create new user');
 
     res.send({ data: user });
   } catch (err) { next(err); }
@@ -74,7 +74,7 @@ usersRouter.put('/:id', async (req, res, next) => {
         id: req.params.id
       }
     });
-    logger.info(`update ${req.body.firstName} user`);
+    infoLogger.info(`update ${req.body.firstName} user`);
 
     res.send({ data: user });
   } catch (err) { next(err); }
@@ -89,13 +89,13 @@ usersRouter.get('/:id/blog', async (req, res, next) => {
       raw: true,
       nest: true,
     });
-    const articlesViews = await Views.find({}).exec();
+    const articlesViews = await Views.find({});
 
     const mapped = article.map(item => {
       const viewsElement = articlesViews.find(element => element.articleId === item.id);
       return { ...item, views: viewsElement.views };
     });
-    logger.info('get user blog');
+    infoLogger.info('get user blog');
 
     res.send({ data: mapped });
   } catch (err) { next(err); }
@@ -107,8 +107,8 @@ usersRouter.delete('/:id', async (req, res, next) => {
       where: { id: req.params.id }
     });
 
-    await Views.deleteMany({ authorId: req.params.id }).exec();
-    logger.info('delete user');
+    await Views.deleteMany({ authorId: req.params.id });
+    infoLogger.info('delete user');
 
     res.send({ data: users });
   } catch (err) { next(err); }

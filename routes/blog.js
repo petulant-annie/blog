@@ -2,7 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const articlesRouter = express.Router();
 
-const logger = require('../logger').logger;
+const infoLogger = require('../infoLogger').logger;
+const viewsLogger = require('../viewsLogger').logger;
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
@@ -21,19 +22,21 @@ articlesRouter.get('/', async (req, res, next) => {
       const viewsElement = articlesViews.find(element => element.articleId === item.id);
       return { ...item, views: viewsElement.views }
     });
-    logger.info('get all articles');
+    infoLogger.info('get all articles');
 
     res.send({ data: mapped });
   } catch (err) { next(err); }
 });
 
 articlesRouter.get('/:id', async (req, res, next) => {
+  console.log(typeof req.params.id)
   try {
-    if (req.params.id.length < 1) {
-      throw new Error('no article');
+    if (req.params.id === undefined ||
+      req.params.id === null ||
+      isNaN(parseInt(req.params.id)) ||
+      req.params.id.length < 1) {
+      throw new Error('no such article');
     } else {
-      const articlesViews = await Views.findOne({ articleId: req.params.id });
-
       const article = await Article.findOne({
         include: [{ model: User, as: 'author' }],
         where: { id: req.params.id },
@@ -41,23 +44,22 @@ articlesRouter.get('/:id', async (req, res, next) => {
         nest: true,
       });
 
-      if (articlesViews === null) {
-        throw new Error(`there's no ${req.params.id} article`);
+      if (article === null) {
+        throw new Error('no article author');
       } else {
+
         const viewsCount = await Views.findOneAndUpdate({
           articleId: req.params.id,
           authorId: article.author.id,
         }, {
-          $set: { views: articlesViews.views + 1 }
-        }, {
-          new: true,
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        });
-        logger.info(`get id:${req.params.id} article`);
+          $inc: { views: 1 }
+        }, { new: true });
+
+        viewsLogger.info(`get id:${req.params.id} article`);
 
         res.send({ data: { ...article, views: viewsCount.views } });
       }
+
     }
   } catch (err) { next(err); }
 });
@@ -76,7 +78,7 @@ articlesRouter.post('/', async (req, res, next) => {
       authorId: article.authorId,
       views: 0,
     });
-    logger.info('create new article');
+    infoLogger.info('create new article');
 
     res.send({ data: article });
   } catch (err) { next(err); }
@@ -89,12 +91,9 @@ articlesRouter.put('/:id', async (req, res, next) => {
       content: req.body.content,
       authorId: req.body.authorId,
       publishedAt: req.body.publishedAt,
-    }, {
-      where: {
-        id: req.params.id
-      }
-    });
-    logger.info(`change id:${req.params.id} article`);
+    }, { where: { id: req.params.id } });
+
+    infoLogger.info(`change id:${req.params.id} article`);
 
     res.send({ data: article });
   } catch (err) { next(err); }
@@ -102,17 +101,12 @@ articlesRouter.put('/:id', async (req, res, next) => {
 
 articlesRouter.delete('/:id', async (req, res, next) => {
   try {
-    const article = await Article.destroy({
-      where: { id: req.params.id }
-    });
+    const article = await Article.destroy({ where: { id: req.params.id } });
 
     await Views.findOneAndRemove({
       articleId: req.params.id,
-    }, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
     });
-    logger.info(`delete id:${req.params.id} article`);
+    infoLogger.info(`delete id:${req.params.id} article`);
 
     res.send({ data: article });
   } catch (err) { next(err); }
