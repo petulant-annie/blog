@@ -29,7 +29,6 @@ articlesRouter.get('/', async (req, res, next) => {
 });
 
 articlesRouter.get('/:id', async (req, res, next) => {
-  console.log(typeof req.params.id)
   try {
     if (req.params.id === undefined ||
       req.params.id === null ||
