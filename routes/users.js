@@ -1,12 +1,25 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+// const LocalStrategy = require('passport-local').Strategy;
 const sequelize = require('../dbConnection');
 const usersRouter = express.Router();
+const saltRounds = 10;
 
-const infoLogger = require('../infoLogger').logger;
+const infoLogger = require('../loggers/infoLogger').logger;
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
+
+const getHash = (password) => {
+  return new Promise((res, rej) => {
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+      if (err) {
+        rej(err);
+      } else { res(hash); }
+    });
+  });
+}
 
 usersRouter.get('/', async (req, res, next) => {
   try {
@@ -48,13 +61,20 @@ usersRouter.get('/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-usersRouter.post('/', async (req, res, next) => {
+usersRouter.post('/registration', async (req, res, next) => {
+
+  // req.login(user, function(err) {
+  //   if (err) { return next(err); }
+  //   return res.redirect('/users/' + req.user.username);
+  // });
+
   try {
+    const hash = await getHash(req.body.password);
     const user = await User.create({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
-      password: req.body.password,
+      password: `${hash}`,
     });
     infoLogger.info('create new user');
 

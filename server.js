@@ -2,8 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const errorLogger = require('./errorLogger').logger;
-const infoLogger = require('./infoLogger').logger;
+const errorLogger = require('./loggers/errorLogger').logger;
+const infoLogger = require('./loggers/infoLogger').logger;
 require('dotenv').config();
 
 const app = express();

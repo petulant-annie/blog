@@ -2,8 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const articlesRouter = express.Router();
 
-const infoLogger = require('../infoLogger').logger;
-const viewsLogger = require('../viewsLogger').logger;
+const infoLogger = require('../loggers/infoLogger').logger;
+const viewsLogger = require('../loggers/viewsLogger').logger;
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
