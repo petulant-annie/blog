@@ -5,7 +5,7 @@ const router = express.Router();
 const blog = require('./blog');
 const users = require('./users');
 
-router.use('/api/v1/users', users);
+router.use('/api/v1', users);
 router.use('/api/v1/blog', blog);
 
 router.get('*', (req, res) => {

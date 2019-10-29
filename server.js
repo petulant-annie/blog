@@ -1,19 +1,34 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const passport = require('passport');
+const redis = require('redis');
+const session = require('express-session');
+
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
-require('dotenv').config();
 
 const app = express();
 
 const router = require('./routes/main');
 const sequelize = require('./dbConnection');
+let RedisStore = require('connect-redis')(session)
+let redisClient = redis.createClient()
+require('./config/passport')(passport);
+
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(cors());
+app.use(session({
+  store: new RedisStore({ client: redisClient }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', router);
 app.use((err, req, res) => {

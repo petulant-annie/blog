@@ -1,12 +1,12 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const articlesRouter = express.Router();
+const mongoose = require('mongoose');
 
-const infoLogger = require('../loggers/infoLogger').logger;
-const viewsLogger = require('../loggers/viewsLogger').logger;
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
+const infoLogger = require('../loggers/infoLogger').logger;
+const viewsLogger = require('../loggers/viewsLogger').logger;
 
 articlesRouter.get('/', async (req, res, next) => {
   try {
@@ -30,10 +30,8 @@ articlesRouter.get('/', async (req, res, next) => {
 
 articlesRouter.get('/:id', async (req, res, next) => {
   try {
-    if (req.params.id === undefined ||
-      req.params.id === null ||
-      isNaN(parseInt(req.params.id)) ||
-      req.params.id.length < 1) {
+    if (!req.params.id ||
+      isNaN(parseInt(req.params.id))) {
       throw new Error('no such article');
     } else {
       const article = await Article.findOne({
@@ -102,9 +100,7 @@ articlesRouter.delete('/:id', async (req, res, next) => {
   try {
     const article = await Article.destroy({ where: { id: req.params.id } });
 
-    await Views.findOneAndRemove({
-      articleId: req.params.id,
-    });
+    await Views.findOneAndRemove({ articleId: req.params.id });
     infoLogger.info(`delete id:${req.params.id} article`);
 
     res.send({ data: article });
