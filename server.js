@@ -4,31 +4,33 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const redis = require('redis');
-const session = require('express-session');
+// const redis = require('redis');
+// const session = require('express-session');
 
+const router = require('./routes/main');
+const sequelize = require('./dbConnection');
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
 
 const app = express();
 
-const router = require('./routes/main');
-const sequelize = require('./dbConnection');
-let RedisStore = require('connect-redis')(session)
-let redisClient = redis.createClient()
-require('./config/passport')(passport);
-
 const PORT = process.env.PORT || 3000;
+
+// let RedisStore = require('connect-redis')(session)
+// let redisClient = redis.createClient()
+
 
 app.use(bodyParser.json());
 app.use(cors());
-app.use(session({
-  store: new RedisStore({ client: redisClient }),
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-}));
+// app.use(session({
+//   store: new RedisStore({ client: redisClient }),
+//   secret: process.env.SESSION_SECRET,
+//   resave: false,
+//   saveUninitialized: false,
+// }));
 app.use(passport.initialize());
 app.use(passport.session());
+require('./config/passport')(passport);
 
 app.use('/', router);
 app.use((err, req, res) => {

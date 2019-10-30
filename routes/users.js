@@ -1,17 +1,14 @@
 const express = require('express');
 const usersRouter = express.Router();
 const mongoose = require('mongoose');
-const passport = require('passport');
 
 const { User, Article } = require('../models/index');
 const sequelize = require('../dbConnection');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
 const infoLogger = require('../loggers/infoLogger').logger;
-const getHash = require('../hash');
-const { ensureAuthenticated } = require('../config/auth');
 
-usersRouter.get('/users', async (req, res, next) => {
+usersRouter.get('/', async (req, res, next) => {
   try {
     const users = await sequelize.query(
       `select users.*, COUNT(authorId) 
@@ -42,7 +39,7 @@ usersRouter.get('/users', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-usersRouter.get('/users/:id', async (req, res, next) => {
+usersRouter.get('/:id', async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { id: req.params.id } });
     infoLogger.info(`get id:${req.params.id} user`);
@@ -51,49 +48,7 @@ usersRouter.get('/users/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-//Registration user
-
-usersRouter.post('/registration', async (req, res, next) => {
-  try {
-
-    const hash = await getHash(req.body.password);
-    const user = await User.create({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
-      password: `${hash}`,
-    });
-    infoLogger.info('create new user');
-
-    passport.serializeUser((user, done) => {
-      done(null, user.id);
-    });
-
-    passport.deserializeUser((id, done) => {
-      User.findById(id, function (err, user) {
-        done(err, user);
-      });
-    });
-
-    res.send({ data: user });
-  } catch (err) { next(err); }
-});
-
-usersRouter.put('/profile', async (req, res, next) => {
-  try {
-    const user = await User.update({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName
-    }, {
-      where: { id: req.params.id }
-    });
-    infoLogger.info(`update ${req.body.firstName} user`);
-
-    res.send({ data: user });
-  } catch (err) { next(err); }
-});
-
-usersRouter.get('/users/:id/blog', async (req, res, next) => {
+usersRouter.get('/:id/blog', async (req, res, next) => {
   try {
     const article = await Article.findAll({
       order: [['id', 'DESC']],
@@ -111,34 +66,6 @@ usersRouter.get('/users/:id/blog', async (req, res, next) => {
     infoLogger.info('get user blog');
 
     res.send({ data: mapped });
-  } catch (err) { next(err); }
-});
-
-usersRouter.delete('/profile', ensureAuthenticated, async (req, res, next) => {
-  try {
-    const users = await User.destroy({
-      where: { id: req.params.id }
-    });
-
-    await Views.deleteMany({ authorId: req.params.id });
-    infoLogger.info('delete user');
-
-    res.send({ data: users });
-  } catch (err) { next(err); }
-});
-
-usersRouter.post('/login', (req, res, next) => {
-  passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/registration',
-  })(req, res, next)
-});
-
-usersRouter.post('/logout', (req, res, next) => {
-  try {
-    req.logout();
-    infoLogger.info('logout');
-    res.redirect('/login')
   } catch (err) { next(err); }
 });
 
