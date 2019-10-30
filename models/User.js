@@ -2,7 +2,6 @@ const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../dbConnection');
 
 class User extends Model { }
-
 User.init({
   firstName: {
     type: DataTypes.STRING,
