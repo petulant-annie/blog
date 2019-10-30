@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
-// const redis = require('redis');
+const redis = require('redis');
 const session = require('express-session');
 
 const router = require('./routes/main');
@@ -17,22 +17,27 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-// const RedisStore = require('connect-redis')(session)
-// const redisClient = redis.createClient()
+const RedisStore = require('connect-redis')(session)
+const redisClient = redis.createClient()
 
 app.use(bodyParser.json());
 app.use(cookieParser())
 app.use(cors());
+
+redisClient.on('error', (err) => {
+  console.log('Redis error: ', err);
+});
+
 app.use(session({
-  // store: new RedisStore({
-  //   client: redisClient
-  // }),
+  store: new RedisStore({
+    client: redisClient,
+    url: process.env.REDIS_URL,
+  }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
     maxAge: 600000,
-    // secure: true,
   },
 }));
 app.use(passport.initialize());
