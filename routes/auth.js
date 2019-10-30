@@ -12,20 +12,14 @@ const infoLogger = require('../loggers/infoLogger').logger;
 
 auth.put('/profile', isLoggedIn, async (req, res, next) => {
   try {
-    const user = await User.update({
+    await User.update({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
     }, {
-      where: { id: req.session.passport.user },
+      where: { id: req.session.passport.user }
     });
-
-    // infoLogger.info(`update ${req.body.firstName} user`);
-    console.log(User.update({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-    }, {
-      where: { id: req.session.passport.user },
-    }))
+    const user = await User.findOne({ where: { id: req.session.passport.user } })
+    infoLogger.info(`update ${req.body.firstName} user`);
 
     res.send({ data: user });
   } catch (err) { next(err); }
@@ -34,10 +28,10 @@ auth.put('/profile', isLoggedIn, async (req, res, next) => {
 auth.delete('/profile', isLoggedIn, async (req, res, next) => {
   try {
     const users = await User.destroy({
-      where: { id: req.params.id }
+      where: { id: req.session.passport.user }
     });
 
-    await Views.deleteMany({ authorId: req.params.id });
+    await Views.deleteMany({ authorId: req.session.passport.user });
     infoLogger.info('delete user');
 
     res.send({ data: users });

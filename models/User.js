@@ -22,6 +22,11 @@ User.init({
 }, {
   sequelize,
   modelName: 'users',
+  defaultScope: {
+    attributes: {
+      exclude: ['password']
+    }
+  }
 });
 
 User.associate = (models) => {

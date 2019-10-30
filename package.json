@@ -44,7 +44,6 @@
     "pm2": "^3.5.1",
     "redis": "^2.8.0",
     "winston": "^3.2.1",
-    "winston-daily-rotate-file": "^4.2.1",
     "winston-mongodb": "^5.0.0"
   },
   "devDependencies": {

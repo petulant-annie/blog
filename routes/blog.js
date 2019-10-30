@@ -66,7 +66,7 @@ articlesRouter.post('/', async (req, res, next) => {
     const article = await Article.create({
       title: req.body.title,
       content: req.body.content,
-      authorId: req.body.authorId,
+      authorId: req.session.passport.user,
       publishedAt: req.body.publishedAt,
     });
 
