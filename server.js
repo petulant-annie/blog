@@ -33,6 +33,7 @@ app.use(session({
     client: redisClient,
     url: process.env.REDIS_URL,
   }),
+  name: '_redisPractice',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
