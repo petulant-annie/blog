@@ -79,7 +79,7 @@ auth.post('/logout', (req, res, next) => {
   try {
     req.logout();
     infoLogger.info('logout');
-    res.redirect('/login')
+    res.send({});
   } catch (err) { next(err); }
 });
 
