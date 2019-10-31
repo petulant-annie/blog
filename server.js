@@ -17,11 +17,11 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-const RedisStore = require('connect-redis')(session)
-const redisClient = redis.createClient()
+const RedisStore = require('connect-redis')(session);
+const redisClient = redis.createClient();
 
 app.use(bodyParser.json());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(cors());
 
 redisClient.on('error', (err) => {
@@ -37,9 +37,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    maxAge: 600000,
-  },
+  cookie: { maxAge: 600000 },
 }));
 app.use(passport.initialize());
 app.use(passport.session());

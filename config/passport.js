@@ -1,8 +1,10 @@
+require('dotenv').config();
 const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcrypt');
 
 const asyncMiddleware = require('../asyncMiddleware');
-const { User } = require('../models/index');
+const { User, oauthAccount } = require('../models/index');
 
 module.exports = function (passport) {
   passport.use(
@@ -25,4 +27,21 @@ module.exports = function (passport) {
         }
       })),
   );
+
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+  }, asyncMiddleware( (accessToken, refreshToken, profile, cb) => {
+
+    oauthAccount.findOrCreate({
+      provider: 'google',
+      providerUserId: profile.id,
+      userId: '',
+    }, (err, user) => {
+      return cb(err, user);
+    });
+  }
+  )));
+
 }

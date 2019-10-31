@@ -34,6 +34,10 @@ User.associate = (models) => {
     as: 'article',
     foreignKey: 'authorId',
   });
+  User.hasOne(models.OauthAccount, {
+    as: 'oauthAccounts',
+    foreignKey: 'userId',
+  });
 };
 
 module.exports = User;
