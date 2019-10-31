@@ -11,14 +11,15 @@ const isLoggedIn = require('../config/isLogged');
 const infoLogger = require('../loggers/infoLogger').logger;
 
 auth.put('/profile', isLoggedIn, async (req, res, next) => {
+  console.log(req.user)
   try {
     await User.update({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
     }, {
-      where: { id: req.session.passport.user }
+      where: { id: req.user }
     });
-    const user = await User.findOne({ where: { id: req.session.passport.user } })
+    const user = await User.findOne({ where: { id: req.user } })
     infoLogger.info(`update ${req.body.firstName} user`);
 
     res.send({ data: user });
@@ -28,10 +29,10 @@ auth.put('/profile', isLoggedIn, async (req, res, next) => {
 auth.delete('/profile', isLoggedIn, async (req, res, next) => {
   try {
     const users = await User.destroy({
-      where: { id: req.session.passport.user }
+      where: { id: req.user }
     });
 
-    await Views.deleteMany({ authorId: req.session.passport.user });
+    await Views.deleteMany({ authorId: req.user });
     infoLogger.info('delete user');
 
     res.send({ data: users });
@@ -49,9 +50,7 @@ auth.post('/registration', async (req, res, next) => {
       password: `${hash}`,
     });
 
-    const currentId = user.dataValues.id;
-
-    req.login(currentId, (err) => {
+    req.login(user, (err) => {
       if (err) { throw err }
       infoLogger.info('create new user');
       res.send({ data: user });

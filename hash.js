@@ -1,14 +1,11 @@
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-const getHash = (password) => {
-  return new Promise((res, rej) => {
-    bcrypt.hash(password, saltRounds, (err, hash) => {
-      if (err) {
-        rej(err);
-      } else { res(hash); }
-    });
-  });
+const getHash = async (password) => {
+  const hash = await bcrypt.hash(password, saltRounds)
+  if (hash) {
+    return hash;
+  } else { throw new Error }
 }
 
 module.exports = getHash;
