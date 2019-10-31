@@ -7,104 +7,94 @@ const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
 const infoLogger = require('../loggers/infoLogger').logger;
 const viewsLogger = require('../loggers/viewsLogger').logger;
+const asyncMiddleware = require('../asyncMiddleware');
 
-articlesRouter.get('/', async (req, res, next) => {
-  try {
-    const article = await Article.findAll({
-      order: [['id', 'DESC']],
+articlesRouter.get('/', asyncMiddleware(async (req, res) => {
+  const article = await Article.findAll({
+    order: [['id', 'DESC']],
+    include: [{ model: User, as: 'author' }],
+    raw: true,
+    nest: true,
+  });
+  const articlesViews = await Views.find({});
+
+  const mapped = article.map(item => {
+    const viewsElement = articlesViews.find(element => element.articleId === item.id);
+    return { ...item, views: viewsElement.views }
+  });
+  infoLogger.info('get all articles');
+
+  res.send({ data: mapped });
+}));
+
+articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
+  if (!req.params.id ||
+    isNaN(parseInt(req.params.id))) {
+    throw new Error('no such article');
+  } else {
+    const article = await Article.findOne({
       include: [{ model: User, as: 'author' }],
+      where: { id: req.params.id },
       raw: true,
       nest: true,
     });
-    const articlesViews = await Views.find({});
 
-    const mapped = article.map(item => {
-      const viewsElement = articlesViews.find(element => element.articleId === item.id);
-      return { ...item, views: viewsElement.views }
-    });
-    infoLogger.info('get all articles');
-
-    res.send({ data: mapped });
-  } catch (err) { next(err); }
-});
-
-articlesRouter.get('/:id', async (req, res, next) => {
-  try {
-    if (!req.params.id ||
-      isNaN(parseInt(req.params.id))) {
-      throw new Error('no such article');
+    if (article === null) {
+      throw new Error('no article author');
     } else {
-      const article = await Article.findOne({
-        include: [{ model: User, as: 'author' }],
-        where: { id: req.params.id },
-        raw: true,
-        nest: true,
-      });
 
-      if (article === null) {
-        throw new Error('no article author');
-      } else {
+      const viewsCount = await Views.findOneAndUpdate({
+        articleId: req.params.id,
+        authorId: article.author.id,
+      }, {
+        $inc: { views: 1 }
+      }, { new: true });
 
-        const viewsCount = await Views.findOneAndUpdate({
-          articleId: req.params.id,
-          authorId: article.author.id,
-        }, {
-          $inc: { views: 1 }
-        }, { new: true });
+      viewsLogger.info(`get id:${req.params.id} article`);
 
-        viewsLogger.info(`get id:${req.params.id} article`);
-
-        res.send({ data: { ...article, views: viewsCount.views } });
-      }
-
+      res.send({ data: { ...article, views: viewsCount.views } });
     }
-  } catch (err) { next(err); }
-});
+  }
+}));
 
-articlesRouter.post('/', async (req, res, next) => {
-  try {
-    const article = await Article.create({
-      title: req.body.title,
-      content: req.body.content,
-      authorId: req.user.id,
-      publishedAt: req.body.publishedAt,
-    });
+articlesRouter.post('/', asyncMiddleware(async (req, res) => {
+  const article = await Article.create({
+    title: req.body.title,
+    content: req.body.content,
+    authorId: req.user.id,
+    publishedAt: req.body.publishedAt,
+  });
 
-    await Views.create({
-      articleId: article.id,
-      authorId: article.authorId,
-      views: 0,
-    });
-    infoLogger.info('create new article');
+  await Views.create({
+    articleId: article.id,
+    authorId: article.authorId,
+    views: 0,
+  });
+  infoLogger.info('create new article');
 
-    res.send({ data: article });
-  } catch (err) { next(err); }
-});
+  res.send({ data: article });
+}));
 
-articlesRouter.put('/:id', async (req, res, next) => {
-  try {
-    const article = await Article.update({
-      title: req.body.title,
-      content: req.body.content,
-      authorId: req.body.authorId,
-      publishedAt: req.body.publishedAt,
-    }, { where: { id: req.params.id } });
+articlesRouter.put('/:id', asyncMiddleware(async (req, res) => {
+  const article = await Article.update({
+    title: req.body.title,
+    content: req.body.content,
+    authorId: req.body.authorId,
+    publishedAt: req.body.publishedAt,
+  }, { where: { id: req.params.id } });
 
-    infoLogger.info(`change id:${req.params.id} article`);
+  infoLogger.info(`change id:${req.params.id} article`);
 
-    res.send({ data: article });
-  } catch (err) { next(err); }
-});
+  res.send({ data: article });
+}));
 
-articlesRouter.delete('/:id', async (req, res, next) => {
-  try {
-    const article = await Article.destroy({ where: { id: req.params.id } });
+articlesRouter.delete('/:id', asyncMiddleware(async (req, res) => {
+  const article = await Article.destroy({ where: { id: req.params.id } });
 
-    await Views.findOneAndRemove({ articleId: req.params.id });
-    infoLogger.info(`delete id:${req.params.id} article`);
+  await Views.findOneAndRemove({ articleId: req.params.id });
+  infoLogger.info(`delete id:${req.params.id} article`);
 
-    res.send({ data: article });
-  } catch (err) { next(err); }
-});
+  res.send({ data: article });
+}));
 
 module.exports = articlesRouter;
