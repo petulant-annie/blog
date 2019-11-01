@@ -35,7 +35,7 @@ User.associate = (models) => {
     foreignKey: 'authorId',
   });
   User.hasOne(models.OauthAccount, {
-    as: 'oauthAccounts',
+    as: 'oauth',
     foreignKey: 'userId',
   });
 };

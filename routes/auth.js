@@ -16,21 +16,22 @@ auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
   }, {
-    where: { id: req.user }
+    where: { id: req.user.id }
   });
-  const user = await User.findOne({ where: { id: req.user } })
+  const user = await User.findOne({ where: { id: req.user.id } })
   infoLogger.info(`update ${req.body.firstName} user`);
 
   res.send({ data: user });
 }));
 
 auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
+  console.log(req.user)
   const users = await User.destroy({
-    where: { id: req.user }
+    where: { id: req.user.id }
   });
 
-  await Views.deleteMany({ authorId: req.user });
-  infoLogger.info('delete user');
+  await Views.deleteMany({ authorId: req.user.id });
+  infoLogger.info(`delete user id:${req.user.id}`);
 
   res.send({ data: users });
 }));
@@ -42,7 +43,7 @@ auth.post('/registration', asyncMiddleware(async (req, res) => {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
-    password: `${hash}`,
+    password: hash,
   });
 
   req.login(user, (err) => {
@@ -52,24 +53,15 @@ auth.post('/registration', asyncMiddleware(async (req, res) => {
   });
 }));
 
-auth.post('/login', asyncMiddleware((req, res, next) => {
-  passport.authenticate('local',
-    (err, user) => {
-      if (err) { return next(err); }
+auth.post('/login', passport.authenticate('local'), (req, res) => {
+  res.send({ data: req.user });
+});
 
-      req.login(user.id, (err) => {
-        if (err) { throw err }
-        infoLogger.info('login user');
-      });
-      res.send({ data: user });
-    })(req, res, next);
-}));
-
-auth.post('/logout', asyncMiddleware((req, res) => {
+auth.post('/logout', (req, res) => {
   req.logout();
   infoLogger.info('logout');
   res.send({});
-}));
+});
 
 passport.serializeUser((currentId, done) => {
   done(null, currentId);

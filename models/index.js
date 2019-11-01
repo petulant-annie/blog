@@ -1,6 +1,6 @@
 const User = require('./User');
 const Article = require('./Article');
-const OauthAccount = require('./oauthaccount');
+const OauthAccount = require('./oauthAccount');
 
 const models = {
   User,

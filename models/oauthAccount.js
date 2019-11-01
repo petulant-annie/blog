@@ -11,7 +11,6 @@ OauthAccount.init({
     type: DataTypes.STRING,
     allowNull: false
   },
-
 }, {
   sequelize,
   modelName: 'oauthAccounts',
@@ -19,7 +18,6 @@ OauthAccount.init({
 });
 
 OauthAccount.associate = (models) => {
-  OauthAccount.belongsTo(models.User, { as: 'oauthAccounts' });
+  OauthAccount.belongsTo(models.User, { as: 'user' });
 };
-
 module.exports = OauthAccount;
