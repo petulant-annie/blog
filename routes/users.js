@@ -22,16 +22,14 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
   const articlesViews = await Views.find({});
 
   const mapped = await users.map(item => {
-    if (articlesViews.length) {
-      let count = [];
-      articlesViews.forEach(element => {
-        if (element.authorId === item.id) { count.push(element.views) }
-      });
-      const reduce = count.reduce((total, amount) => { return total + amount }, 0);
+    let count = [];
+    articlesViews.forEach(element => {
+      if (element.authorId === item.id) { count.push(element.views) }
+    });
+    const reduce = count.reduce((total, amount) => { return total + amount }, 0);
 
-      return { ...item, viewsCount: reduce };
-    }
-    return { ...item }
+    return { ...item, viewsCount: reduce };
+
   });
   infoLogger.info('get all users');
 
