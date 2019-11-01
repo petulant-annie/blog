@@ -7,8 +7,9 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const redis = require('redis');
 const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
 const RateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
+const RedisStoreLimit = require('rate-limit-redis');
 
 const router = require('./routes/main');
 const sequelize = require('./dbConnection');
@@ -25,31 +26,34 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
 
+app.set('trust proxy', 1);
+
 redisClient.on('error', (err) => {
   console.log('Redis error: ', err);
 });
 
 const limiter = new RateLimit({
+  store: new RedisStoreLimit({
+    client: redisClient,
+  }),
+  max: 100,
+  delayMs: 0,
+  prefix: 'anna:',
+});
+
+app.use(session({
   store: new RedisStore({
     client: redisClient,
     url: process.env.REDIS_URL,
   }),
-  max: 100,
-  delayMs: 0,
-  prefix: 'anna:rl:'
-});
-
-app.set('trust proxy', 1);
-
-app.use(session({
-  limiter,
-  name: '_redisPractice',
+  name: '_redisStore',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 600000, secure: true },
+  cookie: { maxAge: 600000 },
 }));
 
+app.use(limiter);
 app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);

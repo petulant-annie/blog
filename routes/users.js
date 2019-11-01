@@ -39,10 +39,19 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
 }));
 
 usersRouter.get('/:id', asyncMiddleware(async (req, res) => {
-  const user = await User.findOne({ where: { id: req.params.id } });
-  infoLogger.info(`get id:${req.params.id} user`);
+  if (!req.params.id ||
+    isNaN(parseInt(req.params.id))) {
+    throw new Error('no such user');
+  } else {
+    const user = await User.findOne({ where: { id: req.params.id } });
+    if (user === null) {
+      throw new Error('no article author');
+    } else {
+      infoLogger.info(`get id:${req.params.id} user`);
 
-  res.send({ data: user });
+      res.send({ data: user });
+    }
+  }
 }));
 
 usersRouter.get('/:id/blog', asyncMiddleware(async (req, res) => {
