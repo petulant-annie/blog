@@ -8,37 +8,25 @@ const passport = require('passport');
 const redis = require('redis');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
-const RateLimit = require('express-rate-limit');
-const RedisStoreLimit = require('rate-limit-redis');
 
 const router = require('./routes/main');
 const sequelize = require('./dbConnection');
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
+const limiter = require('./limiter');
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-
 const redisClient = redis.createClient();
 
+app.set('trust proxy', 1);
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
 
-app.set('trust proxy', 1);
-
 redisClient.on('error', (err) => {
   console.log('Redis error: ', err);
-});
-
-const limiter = new RateLimit({
-  store: new RedisStoreLimit({
-    client: redisClient,
-  }),
-  max: 100,
-  delayMs: 0,
-  prefix: 'anna:',
 });
 
 app.use(session({
@@ -54,6 +42,7 @@ app.use(session({
 }));
 
 app.use(limiter);
+
 app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);
