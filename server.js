@@ -6,6 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const redis = require('redis');
+const session = require('express-session');
 const RateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis');
 
@@ -33,18 +34,22 @@ const limiter = new RateLimit({
     client: redisClient,
     url: process.env.REDIS_URL,
   }),
+  max: 100,
+  delayMs: 0,
+  prefix: 'anna:rl:'
+});
+
+app.set('trust proxy', 1);
+
+app.use(session({
+  limiter,
   name: '_redisPractice',
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 600000 },
-  max: 100,
-  delayMs: 0,
-  prefix: 'anna:rl:',
-});
+  cookie: { maxAge: 600000, secure: true },
+}));
 
-app.set('trust proxy', 1);
-app.use(limiter);
 app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);
