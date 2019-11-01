@@ -78,14 +78,7 @@ module.exports = function (passport) {
     profileFields: ['id', 'photos', 'email'],
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      const user = await User.findOne({
-        where: { email: profile.email },
-        raw: true,
-        nest: true,
-      });
-      if (!user) {
-        return done(null, false, { message: 'User not registered' })
-      } else {
+      const addAccount = (user) => {
         OauthAccount.findOrCreate({
           where: { providerUserId: profile.id },
           defaults: {
@@ -94,6 +87,24 @@ module.exports = function (passport) {
             userId: user.id,
           }
         });
+      }
+      const user = await User.findOne({
+        where: { email: profile.email },
+        raw: true,
+        nest: true,
+      });
+      if (!user) {
+        const newUser = await User.create({
+          firstName: profile.name.givenName,
+          lastName: profile.name.familyName,
+          email: profile.email,
+        });
+        addAccount(newUser.id);
+
+        return done(null, newUser);
+      } else {
+        addAccount(user.id);
+
         return done(null, user)
       }
     } catch (err) { return done(err); }
