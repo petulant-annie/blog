@@ -27,7 +27,7 @@ module.exports = function (passport) {
               return done(null, false, { message: 'Password incorrect' })
             }
           });
-        })
+        });
       }));
 
   passport.use(new GoogleStrategy({
