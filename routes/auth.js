@@ -12,7 +12,6 @@ const infoLogger = require('../loggers/infoLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
-  console.log(req.user)
   await User.update({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
