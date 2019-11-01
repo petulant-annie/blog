@@ -18,7 +18,9 @@ const limiter = require('./limiter');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const redisClient = redis.createClient();
+const redisClient = redis.createClient(
+  { url: process.env.REDIS_URL }
+);
 
 app.set('trust proxy', 1);
 app.use(bodyParser.json());
@@ -32,7 +34,6 @@ redisClient.on('error', (err) => {
 app.use(session({
   store: new RedisStore({
     client: redisClient,
-    url: process.env.REDIS_URL,
   }),
   name: '_redisStore',
   secret: process.env.SESSION_SECRET,
