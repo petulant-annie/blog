@@ -10,12 +10,13 @@ module.exports = function (passport) {
   passport.use(
     new LocalStrategy(
       { usernameField: 'email', passwordField: 'password' },
-      (email, password, done) => {
-        User.unscoped().findOne({
-          where: { email: email },
-          raw: true,
-          nest: true,
-        }).then(user => {
+      async (email, password, done) => {
+        try {
+          const user = await User.unscoped().findOne({
+            where: { email: email },
+            raw: true,
+            nest: true,
+          })
           if (!user) {
             return done(null, false, { message: 'User not registered' })
           }
@@ -27,7 +28,8 @@ module.exports = function (passport) {
               return done(null, false, { message: 'Password incorrect' })
             }
           });
-        });
+
+        } catch (err) { return done(err); }
       }));
 
   passport.use(new GoogleStrategy({
@@ -36,23 +38,35 @@ module.exports = function (passport) {
     callbackURL: process.env.GOOGLE_CALLBACK_URL,
   }, async (accessToken, refreshToken, profile, done) => {
     try {
+      const addAccount = (user) => {
+        OauthAccount.findOrCreate({
+          where: { providerUserId: profile.id },
+          defaults: {
+            provider: 'google',
+            providerUserId: profile.id,
+            userId: user,
+          }
+        });
+      }
+
       const user = await User.findOne({
         where: { email: profile.emails[0].value },
         raw: true,
         nest: true,
       });
       if (!user) {
-        return done(null, false, { message: 'User not registered' })
-      } else {
-        OauthAccount.findOrCreate({
-          where: { providerUserId: profile.id },
-          defaults: {
-            provider: 'google',
-            providerUserId: profile.id,
-            userId: user.id,
-          }
+        const newUser = await User.create({
+          firstName: profile.name.givenName,
+          lastName: profile.name.familyName,
+          email: profile.emails[0].value,
         });
-        return done(null, user)
+        addAccount(newUser.id);
+
+        return done(null, newUser);
+      } else {
+        addAccount(user.id);
+
+        return done(null, user);
       }
     } catch (err) { return done(err); }
   }));
