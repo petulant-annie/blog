@@ -25,11 +25,9 @@ auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
 }));
 
 auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
-  console.log(req.user)
   const users = await User.destroy({
     where: { id: req.user.id }
   });
-
   await Views.deleteMany({ authorId: req.user.id });
   infoLogger.info(`delete user id:${req.user.id}`);
 

@@ -10,13 +10,12 @@ oauth.post('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login' }),
   (req, res) => { res.send({ data: req.user }); });
 
-oauth.get('/facebook', () => {
+oauth.get('/facebook',
+  passport.authenticate('facebook', { scope: ['profile', 'email'] }));
 
-});
-
-oauth.post('/facebook/callback', () => {
-
-});
+oauth.post('/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  (req, res) => { res.send({ data: req.user }); });
 
 passport.serializeUser((currentId, done) => {
   done(null, currentId);
