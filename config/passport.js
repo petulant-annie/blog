@@ -72,12 +72,13 @@ module.exports = function (passport) {
   }));
 
   passport.use(new FacebookStrategy({
-    clientID: process.env.FACEBOOK_CLIENT_ID,
-    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
     callbackURL: process.env.FACEBOOK_CALLBACK_URL,
     profileFields: ['id', 'displayName', 'photos', 'email'],
     enableProof: true,
   }, async (accessToken, refreshToken, profile, done) => {
+    console.log(profile)
     try {
       const addAccount = (user) => {
         OauthAccount.findOrCreate({
@@ -85,12 +86,12 @@ module.exports = function (passport) {
           defaults: {
             provider: 'facebook',
             providerUserId: profile.id,
-            userId: user.id,
+            userId: user,
           }
         });
       }
       const user = await User.findOne({
-        where: { email: profile.email },
+        where: { email: profile.emails[0].value, },
         raw: true,
         nest: true,
       });
@@ -98,7 +99,7 @@ module.exports = function (passport) {
         const newUser = await User.create({
           firstName: profile.name.givenName,
           lastName: profile.name.familyName,
-          email: profile.email,
+          email: profile.emails[0].value,
         });
         addAccount(newUser.id);
 
