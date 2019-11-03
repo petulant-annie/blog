@@ -10,6 +10,7 @@ const getHash = require('../hash');
 const isLoggedIn = require('../config/isLogged');
 const infoLogger = require('../loggers/infoLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
+const { loginLimiter } = require('../limiter');
 
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await User.update({
@@ -51,7 +52,7 @@ auth.post('/registration', asyncMiddleware(async (req, res) => {
   });
 }));
 
-auth.post('/login', passport.authenticate('local'), (req, res) => {
+auth.post('/login', loginLimiter, passport.authenticate('local'), (req, res) => {
   res.send({ data: req.user });
 });
 

@@ -13,7 +13,7 @@ const router = require('./routes/main');
 const sequelize = require('./dbConnection');
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
-const limiter = require('./limiter');
+const { limiter } = require('./limiter');
 
 const app = express();
 

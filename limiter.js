@@ -4,7 +4,8 @@ const RateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis');
 
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL });
+  url: process.env.REDIS_URL
+});
 
 const limiter = new RateLimit({
   store: new RedisStore({
@@ -15,4 +16,14 @@ const limiter = new RateLimit({
   delayMs: 0,
 });
 
-module.exports = limiter;
+const loginLimiter = new RateLimit({
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'anna:rl:',
+  }),
+  windowMs: 600000,
+  max: 20,
+  delayMs: 0,
+});
+
+module.exports = { limiter, loginLimiter };

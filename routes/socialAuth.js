@@ -11,7 +11,7 @@ oauth.post('/google/callback',
   (req, res) => { res.send({ data: req.user }); });
 
 oauth.get('/facebook',
-  passport.authenticate('facebook', { scope: ['profile', 'email'] }));
+  passport.authenticate('facebook', { scope: ['email'] }));
 
 oauth.post('/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
