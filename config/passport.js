@@ -78,7 +78,6 @@ module.exports = function (passport) {
     profileFields: ['id', 'displayName', 'photos', 'email'],
     enableProof: true,
   }, async (accessToken, refreshToken, profile, done) => {
-    console.log(profile)
     try {
       const addAccount = (user) => {
         OauthAccount.findOrCreate({
