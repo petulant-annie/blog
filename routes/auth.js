@@ -11,6 +11,8 @@ const isLoggedIn = require('../config/isLogged');
 const infoLogger = require('../loggers/infoLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const { loginLimiter } = require('../limiter');
+const jwt = require('jsonwebtoken');
+const getTokens = require('../getTokens');
 
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await User.update({
@@ -60,6 +62,19 @@ auth.post('/logout', (req, res) => {
   req.logout();
   infoLogger.info('logout');
   res.send({});
+});
+
+auth.get('/jwtencode', async (req, res) => {
+  const token = await getTokens.getAccessToken(req.query.userName);
+  res.send({ token });
+});
+
+auth.post('/jwtdecode', getTokens.verifyToken, async(req, res) => {
+  jwt.verify(req.token, process.env.SESSION_SECRET, async (err, authData) => {
+    if (err) {
+      res.status(401).json(err);
+    } else { res.send(authData); }
+  });
 });
 
 passport.serializeUser((currentId, done) => {
