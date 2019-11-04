@@ -64,18 +64,18 @@ auth.post('/logout', (req, res) => {
   res.send({});
 });
 
-auth.get('/jwtencode', async (req, res) => {
+auth.get('/jwtencode', asyncMiddleware(async (req, res) => {
   const token = await getTokens.getAccessToken(req.query.userName);
   res.send({ token });
-});
+}));
 
-auth.post('/jwtdecode', getTokens.verifyToken, async(req, res) => {
+auth.post('/jwtdecode', getTokens.verifyToken, asyncMiddleware(async(req, res) => {
   jwt.verify(req.token, process.env.SESSION_SECRET, async (err, authData) => {
     if (err) {
       res.status(401).json(err);
     } else { res.send(authData); }
   });
-});
+}));
 
 passport.serializeUser((currentId, done) => {
   done(null, currentId);

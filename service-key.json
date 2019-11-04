@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "z-stream-internship",
+  "private_key_id": "013a58344c4e10ba790a1c4a964d2f8546365a7e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC83uSSHPdbkdL3\n5SVDCUv4dztL6whl9T3lw5pV/LKUSpBsUfryz5Zg5MabB3ZbZd4rsO4xPGAywcwU\nFFLzk45EmF04qlHYDKdIzUeii1sFSp+Eq4kkTnnX+AANOQ4Ivd6ZaVC2W5Xj68cZ\noIh7w3+RwmJ7Xk3f43YTkkh7aq7CGSh3uxQrOqFwlwUTxpdAqm2s9Ig23Og0Pbu7\ngOHQghXXU0oqyTc5tKbSL4rm7e6IGdE6CrPnhew1BgFBK933JWz+iwh4JNUBLTcL\n9oDFEgISVjU9IbwhWbNDMBmEhVdgIMbdCSiN5HgNzb3R3IXJy59SNTO6Iru6N2PW\nriq/ppl7AgMBAAECggEAAJlcnwVJt++RUDYSKq4eJQ2248Gv9BvwvcfRJ1UPKJeH\n3NhesFU19Bq5hmgDx5MaTbn6e3ss9UhlEfkqWJUeHmSvNl5CjZmgoOvPDgC8piBf\nNxDewDm68hqj/2yf1ejNjZ2dkVBwYxm1iVRF3SCQaWb94EN45fI+1Yen3LHHQR1o\nFyEGiH+Hif1o9F3v/x+W294IP+AV0Tzra4hPrPR3nK0m3dr+sOqAJ8cdjIoWDN9o\n9Uej+4I/pXUKhoCdWBPtkpKXfAdXHIqS8c15DLjnXMqyHXMBSRTJrPMl/DZsqmCx\nOFenMxJ+TT0wznwB0db6d15KhFQ1S2O1axCNhwcPoQKBgQD7DzClg0QYeNgiS+ET\nL8Q3Y7xvhBRBSkuBQi72xZ4UDgkefCiDB5b1ytBPUAjOQPyQXD9m2haMkh3e7tLi\nuynnA/bpxOKjEUgJpJvG9DfdlPMM2JGYPycDcX1q40PSdMDvjAJBHBejn+gIQUNM\ny65+7rCichzOnTSEwW4TX8fIMQKBgQDAlmctPHXxuqg/wlbK4ZQInEoka2zAZ/EM\nzdGcwtVvvP8WTG695yAYTaVA2wyvozViYtbeVEgAH9EKLsXFQaKa68D28CiSMqvY\nIpGpJCD/w3Sc5aO/GrcR9LkME/ZHGxq/omR7tNmloradYItCTBqR136QvofiJJg4\nkcEU/UZ9awKBgQD0hiP0YPh2+WRRayRKArES3cJPvw3XVZxaxfJmCa3gjJcXKQhw\nLnk65pGjXillcehMVnyuGWXy/fG4C1Y83NyAE91ubIPtHUzTj47l5UFwQL3FWj3c\nUk4WTXhBHh8VoP+1kOE1Nz5S8NEXETGSX6OSH7rMTWZ/WqAnWRp0Jkq4UQKBgHb0\nb4Zhcfh9cq7vOuzVqLoozyLvt5yglyNxfad2MJ9z/ZuoWj6yJADe9NO6eXuDM9Yx\ndsadCFwLSvMfMMlGYUmPlQDyFh03by1xLMdsqXVRJRZEQYAo4CsXHbV4HwaMl1kG\n1UoTytukRWev2lR47XBnyqVdClGEiQFoBfsQ9hlBAoGAEQvIJkmMAFQkoEYHL8ex\n0NTCc4MFiwTPVtJmwlmRh5Mn/kby1RG1j0K9fteDaENvnfI9pslmyO75yLDmHH6L\n55nF+kvMdmZyMy8pQ0BwcWpLzh7DsAbqqyyk5HbZ8kDChnHD9My0QcrhVNFYZxiD\nJVuwlTQh30PJbLTcwCyK0I8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "cloud-storage-admin@z-stream-internship.iam.gserviceaccount.com",
+  "client_id": "100389348974691483961",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/cloud-storage-admin%40z-stream-internship.iam.gserviceaccount.com"
+}
