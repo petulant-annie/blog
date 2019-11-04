@@ -8,6 +8,21 @@ const Views = mongoose.model('articles_views', viewsScheme);
 const infoLogger = require('../loggers/infoLogger').logger;
 const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
+const Multer = require('multer');
+// const sendUploadToGCS = require('../google-cloud-storage');
+// const googleHelpers = require('../helpers/google-cloud-storage');
+
+const fileFilter = (req, file, done) => {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    done(null, true)
+  } else { done(new Error, false) }
+};
+
+const upload = Multer({
+  storage: Multer.MemoryStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: fileFilter,
+});
 
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
   const article = await Article.findAll({
@@ -57,7 +72,8 @@ articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
   }
 }));
 
-articlesRouter.post('/', asyncMiddleware(async (req, res) => {
+articlesRouter.post('/', upload.single('picture'), asyncMiddleware(async (req, res) => {
+  console.log(req.file)
   const article = await Article.create({
     title: req.body.title,
     content: req.body.content,

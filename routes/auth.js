@@ -37,7 +37,6 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   res.send({ data: users });
 }));
 
-
 auth.post('/registration', asyncMiddleware(async (req, res) => {
   const hash = await getHash(req.body.password);
   const user = await User.create({
@@ -55,6 +54,7 @@ auth.post('/registration', asyncMiddleware(async (req, res) => {
 }));
 
 auth.post('/login', loginLimiter, passport.authenticate('local'), (req, res) => {
+  console.log(req.user)
   res.send({ data: req.user });
 });
 
@@ -69,7 +69,7 @@ auth.get('/jwtencode', async (req, res) => {
   res.send({ token });
 });
 
-auth.post('/jwtdecode', getTokens.verifyToken, async(req, res) => {
+auth.post('/jwtdecode', getTokens.verifyToken, async (req, res) => {
   jwt.verify(req.token, process.env.SESSION_SECRET, async (err, authData) => {
     if (err) {
       res.status(401).json(err);

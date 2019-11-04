@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 
 const { User, OauthAccount } = require('../models/index');
 
-module.exports = function (passport) {
+module.exports = (passport) => {
   passport.use(
     new LocalStrategy(
       { usernameField: 'email', passwordField: 'password' },
