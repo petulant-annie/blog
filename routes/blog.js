@@ -18,8 +18,10 @@ const fileFilter = (req, file, done) => {
   } else { done(new Error, false) }
 };
 
+const storage = Multer.memoryStorage();
+
 const upload = Multer({
-  storage: Multer.MemoryStorage,
+  storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: fileFilter,
 });
@@ -42,7 +44,8 @@ articlesRouter.get('/', asyncMiddleware(async (req, res) => {
   res.send({ data: mapped });
 }));
 
-articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
+articlesRouter.get('/:id', upload.single('picture'),  asyncMiddleware(async (req, res) => {
+  console.log(req.file)
   if (!req.params.id ||
     isNaN(parseInt(req.params.id))) {
     throw new Error('no such article');
