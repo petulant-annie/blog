@@ -8,23 +8,7 @@ const Views = mongoose.model('articles_views', viewsScheme);
 const infoLogger = require('../loggers/infoLogger').logger;
 const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
-const Multer = require('multer');
-// const sendUploadToGCS = require('../google-cloud-storage');
-// const googleHelpers = require('../helpers/google-cloud-storage');
-
-const fileFilter = (req, file, done) => {
-  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    done(null, true)
-  } else { done(new Error, false) }
-};
-
-const storage = Multer.memoryStorage();
-
-const upload = Multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: fileFilter,
-});
+const google = require('../google-cloud-storage');
 
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
   const article = await Article.findAll({
@@ -44,8 +28,7 @@ articlesRouter.get('/', asyncMiddleware(async (req, res) => {
   res.send({ data: mapped });
 }));
 
-articlesRouter.get('/:id', upload.single('picture'),  asyncMiddleware(async (req, res) => {
-  console.log(req.file)
+articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
   if (!req.params.id ||
     isNaN(parseInt(req.params.id))) {
     throw new Error('no such article');
@@ -75,37 +58,45 @@ articlesRouter.get('/:id', upload.single('picture'),  asyncMiddleware(async (req
   }
 }));
 
-articlesRouter.post('/', upload.single('picture'), asyncMiddleware(async (req, res) => {
-  console.log(req.file)
-  const article = await Article.create({
-    title: req.body.title,
-    content: req.body.content,
-    authorId: req.user.id,
-    publishedAt: req.body.publishedAt,
-  });
+articlesRouter.post('/', google.upload.single('picture'),
+  google.upload.single('picture'),
+  google.sendUploadToGCS,
+  asyncMiddleware(async (req, res) => {
+    console.log(req.file)
+    const article = await Article.create({
+      title: req.body.title,
+      content: req.body.content,
+      authorId: req.user.id,
+      publishedAt: req.body.publishedAt,
+    });
 
-  await Views.create({
-    articleId: article.id,
-    authorId: article.authorId,
-    views: 0,
-  });
-  infoLogger.info('create new article');
+    await Views.create({
+      articleId: article.id,
+      authorId: article.authorId,
+      views: 0,
+    });
+    infoLogger.info('create new article');
 
-  res.send({ data: article });
-}));
+    res.send({ data: article });
+  }));
 
-articlesRouter.put('/:id', asyncMiddleware(async (req, res) => {
-  const article = await Article.update({
-    title: req.body.title,
-    content: req.body.content,
-    authorId: req.body.authorId,
-    publishedAt: req.body.publishedAt,
-  }, { where: { id: req.params.id } });
+articlesRouter.put('/:id',
+  google.upload.single('picture'),
+  google.sendUploadToGCS,
+  asyncMiddleware(async (req, res) => {
 
-  infoLogger.info(`change id:${req.params.id} article`);
+    console.log(req.file)
+    const article = await Article.update({
+      title: req.body.title,
+      content: req.body.content,
+      authorId: req.body.authorId,
+      publishedAt: req.body.publishedAt,
+    }, { where: { id: req.params.id } });
 
-  res.send({ data: article });
-}));
+    infoLogger.info(`change id:${req.params.id} article`);
+
+    res.send({ data: article });
+  }));
 
 articlesRouter.delete('/:id', asyncMiddleware(async (req, res) => {
   const article = await Article.destroy({ where: { id: req.params.id } });

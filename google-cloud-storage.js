@@ -1,43 +1,45 @@
 require('dotenv').config();
-const gcsHelpers = require('../helpers/google-cloud-storage');
+const { format } = require('util');
+const Multer = require('multer');
+const { Storage } = require('@google-cloud/storage');
 
-const sendUploadToGCS = (req, res, next) => {
+const storage = new Storage();
+const bucket = storage.bucket(process.env.GCS_BUCKET);
+
+const fileFilter = (req, file, done) => {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    done(null, true)
+  } else { done(new Error, false) }
+};
+
+exports.upload = Multer({
+  storage: Multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: fileFilter,
+});
+
+exports.sendUploadToGCS = (req, res, next) => {
   if (!req.file) {
-    return next();
+    res.status(400).send('No file uploaded.');
+    return;
   }
 
-  const bucketName = process.env.GCS_BUCKET;
-  const bucket = gcsHelpers.storage.bucket(bucketName);
-  const gcsFileName = `${Date.now()}-${req.file.originalname}`;
-  const file = bucket.file(gcsFileName);
-  const prefix ='anna/avatars'; // `${yourName}/articles`
-  const size = {
-    width: 180,
-    height: 180,
-  }
+  const blob = bucket.file(req.file.originalname);
+  const blobStream = blob.createWriteStream();
+  const prefix = 'anna/avatars'; // `${yourName}/articles` // prefix
+  const size = { width: 180, height: 180 }
 
-  const stream = file.createWriteStream({
-    metadata: {
-      contentType: req.file.mimetype,
-    },
-  });
-
-  stream.on('error', (err) => {
-    req.file.cloudStorageError = err;
+  blobStream.on('error', err => {
     next(err);
   });
 
-  stream.on('finish', () => {
-    req.file.cloudStorageObject = gcsFileName;
-
-    return file.makePublic()
-      .then(() => {
-        req.file.gcsUrl = gcsHelpers.getPublicUrl(bucketName, gcsFileName, prefix, size);
-        next();
-      });
+  blobStream.on('finish', () => {
+    const publicUrl = format(
+      `https://storage.googleapis.com/${bucket.name}
+    /${prefix}/${size.width}x${size.height}/${Date.now()}-${blob.name}`
+    );
+    res.status(200).send(publicUrl);
   });
 
-  stream.end(req.file.buffer);
+  blobStream.end(req.file.buffer);
 };
-
-module.exports = sendUploadToGCS;

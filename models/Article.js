@@ -11,6 +11,9 @@ Article.init({
     type: DataTypes.STRING,
     allowNull: false
   },
+  picture: {
+    type: DataTypes.STRING,
+  },
   publishedAt: {
     type: DataTypes.STRING,
     allowNull: false
