@@ -3,7 +3,7 @@ const Multer = require('multer');
 const { Storage } = require('@google-cloud/storage');
 
 const prefix = 'anna/articles'
-// const size = { width: 1200, height: 630 };
+const size = { width: 1200, height: 630 };
 
 const storage = new Storage({ keyFilename: './service-key.json' });
 const bucket = storage.bucket(process.env.GCS_BUCKET);
@@ -22,17 +22,12 @@ exports.upload = Multer({
 
 exports.sendUploadToGCS = (req, res, next) => {
   if (!req.file) {
-    return res.status(400).send('No file uploaded.');
+    return next();
   }
 
   const fileName = `${Date.now()}-${req.file.originalname}`;
-  const blob = bucket.file(`${prefix}/${fileName}`);
-
-  // const options = {
-  //   prefix: prefix,
-  // };
-
-  // bucket.getFiles(options).then((file) => { console.log(file) });
+  const fullFileName = `${prefix}/${size.width}x${size.height}/${fileName}`
+  const blob = bucket.file(fullFileName);
 
   const blobStream = blob.createWriteStream({
     metadata: {
@@ -47,9 +42,15 @@ exports.sendUploadToGCS = (req, res, next) => {
   });
 
   blobStream.on('finish', async () => {
-    req.file.gcsUrl = `https://storage.googleapis.com/${bucket.name}/${prefix}/${fileName}`;
+    req.file.gcsUrl = `https://storage.googleapis.com/${bucket.name}/${fullFileName}`;
     next();
   });
 
   blobStream.end(req.file.buffer);
+};
+
+exports.deleteFromGCS = (pic) => {
+  const fileName = pic.slice(49);
+  const image = bucket.file(fileName);
+  image.delete();
 };

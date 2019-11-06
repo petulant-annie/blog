@@ -63,8 +63,6 @@ articlesRouter.post('/',
   google.sendUploadToGCS,
   asyncMiddleware(async (req, res) => {
 
-    console.log(req.file.gcsUrl)
-
     const article = await Article.create({
       title: req.body.title,
       content: req.body.content,
@@ -87,15 +85,25 @@ articlesRouter.put('/:id',
   google.upload.single('picture'),
   google.sendUploadToGCS,
   asyncMiddleware(async (req, res) => {
-
-    console.log(req.file.gcsUrl)
+    let pic;
+    
+    if (req.file && req.file.gcsUrl) {
+      pic = req.file.gcsUrl;
+    } else if (req.body.picture === '') {
+      const article = await Article.findOne({ where: { id: req.params.id } });
+      google.deleteFromGCS(article.picture);
+      pic = '';
+    } else {
+      const article = await Article.findOne({ where: { id: req.params.id } });
+      pic = article.picture;
+    }
 
     const article = await Article.update({
       title: req.body.title,
       content: req.body.content,
       authorId: req.body.authorId,
       publishedAt: req.body.publishedAt,
-      picture: req.file.gcsUrl,
+      picture: pic,
     }, { where: { id: req.params.id } });
 
     infoLogger.info(`change id:${req.params.id} article`);
@@ -104,6 +112,9 @@ articlesRouter.put('/:id',
   }));
 
 articlesRouter.delete('/:id', asyncMiddleware(async (req, res) => {
+  const picture = await Article.findOne({ where: { id: req.params.id } });
+  google.deleteFromGCS(picture.picture);
+
   const article = await Article.destroy({ where: { id: req.params.id } });
 
   await Views.findOneAndRemove({ articleId: req.params.id });
