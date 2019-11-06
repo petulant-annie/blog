@@ -3,7 +3,7 @@ const Multer = require('multer');
 const { Storage } = require('@google-cloud/storage');
 
 const prefix = 'anna/articles'
-const size = { width: 1200, height: 630 };
+// const size = { width: 1200, height: 630 };
 
 const storage = new Storage({ keyFilename: './service-key.json' });
 const bucket = storage.bucket(process.env.GCS_BUCKET);
@@ -20,20 +20,26 @@ exports.upload = Multer({
   fileFilter: fileFilter,
 });
 
-// const streamOpts = { predefinedAcl: this.options.acl || 'publicread' }
-
 exports.sendUploadToGCS = (req, res, next) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
 
   const fileName = `${Date.now()}-${req.file.originalname}`;
-  const blob = bucket.file(fileName);
+  const blob = bucket.file(`${prefix}/${fileName}`);
+
+  // const options = {
+  //   prefix: prefix,
+  // };
+
+  // bucket.getFiles(options).then((file) => { console.log(file) });
+
   const blobStream = blob.createWriteStream({
     metadata: {
       contentType: req.file.mimetype,
     },
-    predefinedAcl: 'publicread'
+    predefinedAcl: 'publicRead',
+    public: true,
   });
 
   blobStream.on('error', err => {
@@ -41,12 +47,7 @@ exports.sendUploadToGCS = (req, res, next) => {
   });
 
   blobStream.on('finish', async () => {
-    req.file.cloudStorageObject = fileName;
-    const public = await blob.makePublic();
-    console.log(public)
-    req.file.gcsUrl =
-      `https://storage.googleapis.com/${bucket.name}
-      /${prefix}/${size.width}x${size.height}/${fileName}`;
+    req.file.gcsUrl = `https://storage.googleapis.com/${bucket.name}/${prefix}/${fileName}`;
     next();
   });
 
