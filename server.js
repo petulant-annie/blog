@@ -28,7 +28,7 @@ app.use(cookieParser());
 app.use(cors());
 
 redisClient.on('error', (err) => {
-  console.log('Redis error: ', err);
+  errorLogger.error(err, err.message)
 });
 
 app.use(session({

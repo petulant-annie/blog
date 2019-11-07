@@ -1,6 +1,7 @@
 require('dotenv').config();
 const Multer = require('multer');
 const { Storage } = require('@google-cloud/storage');
+const sharp = require('sharp');
 
 let prefix = 'anna/articles'
 let size = { width: 1200, height: 630 }
@@ -20,7 +21,7 @@ exports.upload = Multer({
   fileFilter: fileFilter,
 });
 
-exports.sendUploadToGCS = (req, res, next) => {
+exports.sendUploadToGCS = async(req, res, next) => {
   if (!req.file) {
     return next();
   }
@@ -29,6 +30,11 @@ exports.sendUploadToGCS = (req, res, next) => {
     prefix = 'anna/avatars';
     size = { width: 180, height: 180 }
   }
+
+  const sharpImage =
+    await sharp(req.file.buffer)
+      .resize(size.width, size.height)
+      .toBuffer()
 
   const fileName = `${Date.now()}-${req.file.originalname}`;
   const fullFileName = `${prefix}/${size.width}x${size.height}/${fileName}`
@@ -51,11 +57,11 @@ exports.sendUploadToGCS = (req, res, next) => {
     next();
   });
 
-  blobStream.end(req.file.buffer);
+  blobStream.end(sharpImage);
 };
 
 exports.deleteFromGCS = (pic) => {
   const fileName = pic.slice(49);
   const image = bucket.file(fileName);
-  image.delete().then(data => console.log(data));
+  image.delete();
 };

@@ -2,6 +2,7 @@ const express = require('express');
 const auth = express.Router();
 const mongoose = require('mongoose');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
@@ -11,7 +12,6 @@ const isLoggedIn = require('../config/isLogged');
 const infoLogger = require('../loggers/infoLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const { loginLimiter } = require('../limiter');
-const jwt = require('jsonwebtoken');
 const getTokens = require('../getTokens');
 const google = require('../google-cloud-storage');
 
