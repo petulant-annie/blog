@@ -95,10 +95,12 @@ module.exports = function (passport) {
         nest: true,
       });
       if (!user) {
+        const name = profile.displayName.split(' ');
         const newUser = await User.create({
-          firstName: profile.name.givenName,
-          lastName: profile.name.familyName,
+          firstName: name[0],
+          lastName: name[1],
           email: profile.emails[0].value,
+          picture: profile.photos[0].value,
         });
         addAccount(newUser.id);
 
