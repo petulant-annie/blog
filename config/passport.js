@@ -73,8 +73,8 @@ module.exports = (passport) => {
   }));
 
   passport.use(new FacebookStrategy({
-    clientID: process.env.FACEBOOK_CLIENT_ID,
-    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
     callbackURL: process.env.FACEBOOK_CALLBACK_URL,
     profileFields: ['id', 'displayName', 'photos', 'email'],
     enableProof: true,
@@ -96,9 +96,10 @@ module.exports = (passport) => {
         nest: true,
       });
       if (!user) {
+        const name = profile.displayName.split(' ');
         const newUser = await User.create({
-          firstName: profile.name.givenName,
-          lastName: profile.name.familyName,
+          firstName: name[0],
+          lastName: name[1],
           email: profile.emails[0].value,
           picture: profile.photos[0].value,
         });
