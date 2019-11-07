@@ -3,7 +3,7 @@ const auth = express.Router();
 const mongoose = require('mongoose');
 const passport = require('passport');
 
-const { User } = require('../models/index');
+const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
 const getHash = require('../hash');
@@ -13,6 +13,7 @@ const asyncMiddleware = require('../asyncMiddleware');
 const { loginLimiter } = require('../limiter');
 const jwt = require('jsonwebtoken');
 const getTokens = require('../getTokens');
+const google = require('../google-cloud-storage');
 
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await User.update({
@@ -27,10 +28,28 @@ auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   res.send({ data: user });
 }));
 
+auth.put('/profile/picture', isLoggedIn,
+  google.upload.single('picture'),
+  google.sendUploadToGCS,
+  asyncMiddleware(async (req, res) => {
+    await User.update({
+      picture: req.file.gcsUrl,
+    }, {
+      where: { id: req.user.id }
+    });
+    const user = await User.findOne({ where: { id: req.user.id } })
+    infoLogger.info(`update ${req.body.firstName} user`);
+
+    res.send({ data: user });
+  }));
+
 auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
-  const users = await User.destroy({
-    where: { id: req.user.id }
-  });
+  const avatar = await User.findOne({ where: { id: req.user.id } });
+  google.deleteFromGCS(avatar.picture);
+  const pictures = Article.findAll({ where: { authorId: req.user.id } });
+  pictures.map(item => { google.deleteFromGCS(item.picture); });
+
+  const users = await User.destroy({ where: { id: req.user.id } });
   await Views.deleteMany({ authorId: req.user.id });
   infoLogger.info(`delete user id:${req.user.id}`);
 
@@ -54,7 +73,7 @@ auth.post('/registration', asyncMiddleware(async (req, res) => {
 }));
 
 auth.post('/login', loginLimiter, passport.authenticate('local'), (req, res) => {
-  console.log(req.user)
+  infoLogger.info('login');
   res.send({ data: req.user });
 });
 

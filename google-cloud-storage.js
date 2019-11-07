@@ -2,8 +2,8 @@ require('dotenv').config();
 const Multer = require('multer');
 const { Storage } = require('@google-cloud/storage');
 
-const prefix = 'anna/articles'
-const size = { width: 1200, height: 630 };
+let prefix = 'anna/articles'
+let size = { width: 1200, height: 630 }
 
 const storage = new Storage({ keyFilename: './service-key.json' });
 const bucket = storage.bucket(process.env.GCS_BUCKET);
@@ -23,6 +23,11 @@ exports.upload = Multer({
 exports.sendUploadToGCS = (req, res, next) => {
   if (!req.file) {
     return next();
+  }
+
+  if (req.url.includes('profile')) {
+    prefix = 'anna/avatars';
+    size = { width: 180, height: 180 }
   }
 
   const fileName = `${Date.now()}-${req.file.originalname}`;
@@ -52,5 +57,5 @@ exports.sendUploadToGCS = (req, res, next) => {
 exports.deleteFromGCS = (pic) => {
   const fileName = pic.slice(49);
   const image = bucket.file(fileName);
-  image.delete();
+  image.delete().then(data => console.log(data));
 };

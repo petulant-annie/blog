@@ -50,7 +50,6 @@ articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
       }, {
         $inc: { views: 1 }
       }, { new: true });
-
       viewsLogger.info(`get id:${req.params.id} article`);
 
       res.send({ data: { ...article, views: viewsCount.views } });
@@ -62,13 +61,17 @@ articlesRouter.post('/',
   google.upload.single('picture'),
   google.sendUploadToGCS,
   asyncMiddleware(async (req, res) => {
+    let pic = '';
+    if (req.file && req.file.gcsUrl) {
+      pic = req.file.gcsUrl;
+    }
 
     const article = await Article.create({
       title: req.body.title,
       content: req.body.content,
       authorId: req.user.id,
       publishedAt: req.body.publishedAt,
-      picture: req.file.gcsUrl,
+      picture: pic,
     });
 
     await Views.create({
@@ -105,7 +108,6 @@ articlesRouter.put('/:id',
       publishedAt: req.body.publishedAt,
       picture: pic,
     }, { where: { id: req.params.id } });
-
     infoLogger.info(`change id:${req.params.id} article`);
 
     res.send({ data: article });
