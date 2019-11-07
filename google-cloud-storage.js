@@ -3,9 +3,6 @@ const Multer = require('multer');
 const { Storage } = require('@google-cloud/storage');
 const sharp = require('sharp');
 
-let prefix = 'anna/articles'
-let size = { width: 1200, height: 630 }
-
 const storage = new Storage({ keyFilename: './service-key.json' });
 const bucket = storage.bucket(process.env.GCS_BUCKET);
 
@@ -21,12 +18,18 @@ exports.upload = Multer({
   fileFilter: fileFilter,
 });
 
-exports.sendUploadToGCS = async(req, res, next) => {
+exports.sendUploadToGCS = async (req, res, next) => {
+  let prefix;
+  let size;
+
   if (!req.file) {
     return next();
   }
 
-  if (req.url.includes('profile')) {
+  if (req.headers.referer.includes('articles')) {
+    prefix = 'anna/articles'
+    size = { width: 1200, height: 630 }
+  } else {
     prefix = 'anna/avatars';
     size = { width: 180, height: 180 }
   }
