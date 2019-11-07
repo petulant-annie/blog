@@ -46,7 +46,7 @@ auth.put('/profile/picture', isLoggedIn,
 auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   const avatar = await User.findOne({ where: { id: req.user.id } });
   google.deleteFromGCS(avatar.picture);
-  const pictures = Article.findAll({ where: { authorId: req.user.id } });
+  const pictures = await Article.findAll({ where: { authorId: req.user.id } });
   pictures.map(item => { google.deleteFromGCS(item.picture); });
 
   const users = await User.destroy({ where: { id: req.user.id } });
