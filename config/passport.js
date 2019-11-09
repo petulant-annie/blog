@@ -6,6 +6,40 @@ const bcrypt = require('bcrypt');
 
 const { User, OauthAccount } = require('../models/index');
 
+const userAuth = async (firstName, lastName, email, provider, providerId, picture) => {
+  console.log(firstName, lastName, email, provider, providerId)
+
+  const addAccount = (id) => {
+    OauthAccount.findOrCreate({
+      where: { providerUserId: providerId },
+      defaults: {
+        provider: provider,
+        providerUserId: providerId,
+        userId: id,
+      }
+    });
+  }
+
+  const user = await User.findOne({
+    where: { email: email },
+    raw: true,
+    nest: true,
+  });
+  if (!user) {
+    const newUser = await User.create({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      picture: picture,
+    });
+    addAccount(newUser.id);
+    return newUser;
+  } else {
+    addAccount(user.id);
+    return user;
+  }
+}
+
 module.exports = function (passport) {
   passport.use(
     new LocalStrategy(
@@ -38,36 +72,15 @@ module.exports = function (passport) {
     callbackURL: process.env.GOOGLE_CALLBACK_URL,
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      const addAccount = (user) => {
-        OauthAccount.findOrCreate({
-          where: { providerUserId: profile.id },
-          defaults: {
-            provider: 'google',
-            providerUserId: profile.id,
-            userId: user,
-          }
-        });
-      }
-
-      const user = await User.findOne({
-        where: { email: profile.emails[0].value },
-        raw: true,
-        nest: true,
-      });
-      if (!user) {
-        const newUser = await User.create({
-          firstName: profile.name.givenName,
-          lastName: profile.name.familyName,
-          email: profile.emails[0].value,
-        });
-        addAccount(newUser.id);
-
-        return done(null, newUser);
-      } else {
-        addAccount(user.id);
-
-        return done(null, user);
-      }
+      const user = await userAuth(
+        profile.name.givenName,
+        profile.name.familyName,
+        profile.emails[0].value,
+        profile.provider,
+        profile.id,
+        profile.photos[0].value,
+      );
+      return done(null, user);
     } catch (err) { return done(err); }
   }));
 
@@ -79,37 +92,17 @@ module.exports = function (passport) {
     enableProof: true,
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      const addAccount = (user) => {
-        OauthAccount.findOrCreate({
-          where: { providerUserId: profile.id },
-          defaults: {
-            provider: 'facebook',
-            providerUserId: profile.id,
-            userId: user,
-          }
-        });
-      }
-      const user = await User.findOne({
-        where: { email: profile.emails[0].value, },
-        raw: true,
-        nest: true,
-      });
-      if (!user) {
-        const name = profile.displayName.split(' ');
-        const newUser = await User.create({
-          firstName: name[0],
-          lastName: name[1],
-          email: profile.emails[0].value,
-          picture: profile.photos[0].value,
-        });
-        addAccount(newUser.id);
-
-        return done(null, newUser);
-      } else {
-        addAccount(user.id);
-
-        return done(null, user)
-      }
+      const name = profile.displayName.split(' ');
+      const user = await userAuth(
+        name[0],
+        name[1],
+        profile.emails[0].value,
+        profile.provider,
+        profile.id,
+        profile.photos[0].value,
+      );
+      console.log(user)
+      return done(null, user);
     } catch (err) { return done(err); }
   }));
 }
