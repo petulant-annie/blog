@@ -23,7 +23,7 @@ auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
     where: { id: req.user.id }
   });
   const user = await User.findOne({ where: { id: req.user.id } })
-  infoLogger.info(`update ${req.body.firstName} user`);
+  infoLogger.info(`update ${req.body.id} user`);
 
   res.send({ data: user });
 }));
@@ -38,7 +38,7 @@ auth.put('/profile/picture', isLoggedIn,
       where: { id: req.user.id }
     });
     const user = await User.findOne({ where: { id: req.user.id } })
-    infoLogger.info(`update ${req.body.firstName} user`);
+    infoLogger.info(`update ${req.body.id} user`);
 
     res.send({ data: user });
   }));

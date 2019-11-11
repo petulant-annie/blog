@@ -26,9 +26,9 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
     articlesViews.forEach(element => {
       if (element.authorId === item.id) { count.push(element.views) }
     });
-    const reduce = count.reduce((total, amount) => { return total + amount }, 0);
+    const viewsCount = count.reduce((total, amount) => { return total + amount }, 0);
 
-    return { ...item, viewsCount: reduce };
+    return { ...item, viewsCount: viewsCount };
 
   });
   infoLogger.info('get all users');

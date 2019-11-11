@@ -1,6 +1,5 @@
 const winston = require('winston');
 require('winston-mongodb');
-require('dotenv').config();
 
 const levels = {
   error: 0,

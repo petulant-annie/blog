@@ -1,4 +1,3 @@
-require('dotenv').config();
 const redis = require('redis');
 const RateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis');

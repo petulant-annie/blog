@@ -21,6 +21,7 @@ articlesRouter.get('/', asyncMiddleware(async (req, res) => {
 
   const mapped = article.map(item => {
     const viewsElement = articlesViews.find(element => element.articleId === item.id);
+    console.log()
     return { ...item, views: viewsElement.views }
   });
   infoLogger.info('get all articles');

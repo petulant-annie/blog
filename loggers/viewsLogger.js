@@ -1,6 +1,5 @@
 const winston = require('winston');
 require('winston-mongodb');
-require('dotenv').config();
 
 let options = {
   db: `${process.env.MONGO_DB}`,
