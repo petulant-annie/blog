@@ -2,7 +2,6 @@ const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../dbConnection');
 
 class User extends Model { }
-
 User.init({
   firstName: {
     type: DataTypes.STRING,
@@ -18,7 +17,6 @@ User.init({
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false
   },
 }, {
   sequelize,
@@ -34,6 +32,10 @@ User.associate = (models) => {
   User.hasMany(models.Article, {
     as: 'article',
     foreignKey: 'authorId',
+  });
+  User.hasOne(models.OauthAccount, {
+    as: 'oauth',
+    foreignKey: 'userId',
   });
 };
 
