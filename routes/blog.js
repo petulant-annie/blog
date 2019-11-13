@@ -17,8 +17,8 @@ articlesRouter.get('/', asyncMiddleware(async (req, res) => {
     raw: true,
     nest: true,
   });
-  const articlesViews = await Views.find({});
 
+  const articlesViews = await Views.find({});
   const mapped = article.map(item => {
     const viewsElement = articlesViews.find(element => element.articleId === item.id);
     return { ...item, views: viewsElement.views }
@@ -43,7 +43,6 @@ articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
     if (article === null) {
       throw new Error('no article author');
     } else {
-
       const viewsCount = await Views.findOneAndUpdate({
         articleId: req.params.id,
         authorId: article.author.id,
@@ -89,7 +88,7 @@ articlesRouter.put('/:id',
   google.sendUploadToGCS,
   asyncMiddleware(async (req, res) => {
     let pic;
-    
+
     if (req.file && req.file.gcsUrl) {
       pic = req.file.gcsUrl;
     } else if (req.body.picture === '') {
@@ -115,10 +114,10 @@ articlesRouter.put('/:id',
 
 articlesRouter.delete('/:id', asyncMiddleware(async (req, res) => {
   const picture = await Article.findOne({ where: { id: req.params.id } });
-  google.deleteFromGCS(picture.picture);
-
+  if (picture.picture) {
+    google.deleteFromGCS(picture.picture);
+  }
   const article = await Article.destroy({ where: { id: req.params.id } });
-
   await Views.findOneAndRemove({ articleId: req.params.id });
   infoLogger.info(`delete id:${req.params.id} article`);
 

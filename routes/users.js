@@ -20,7 +20,6 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
     });
 
   const articlesViews = await Views.find({});
-
   const mapped = await users.map(item => {
     let count = [];
     articlesViews.forEach(element => {
@@ -29,7 +28,6 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
     const viewsCount = count.reduce((total, amount) => { return total + amount }, 0);
 
     return { ...item, viewsCount: viewsCount };
-
   });
   infoLogger.info('get all users');
 
