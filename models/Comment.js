@@ -13,7 +13,7 @@ Comment.init({
 });
 
 Comment.associate = (models) => {
-  Comment.belongsTo(models.User, { as: 'user' });
+  Comment.belongsTo(models.User, { as: 'author' });
   Comment.belongsTo(models.Article, { as: 'article' });
 };
 module.exports = Comment;
