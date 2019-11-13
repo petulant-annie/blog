@@ -61,10 +61,13 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
 auth.post('/registration', asyncMiddleware(async (req, res) => {
   const hash = await getHash(req.body.password);
   const user = await User.findOrCreate({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: hash,
+    where: { email: req.body.email },
+    defaults: {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      password: hash,
+    }
   });
 
   req.login(user, (err) => {
