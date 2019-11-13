@@ -6,8 +6,6 @@ const bcrypt = require('bcrypt');
 const { User, OauthAccount } = require('../models/index');
 
 const userAuth = async (firstName, lastName, email, provider, providerId, picture) => {
-  console.log(firstName, lastName, email, provider, providerId)
-
   const addAccount = (id) => {
     OauthAccount.findOrCreate({
       where: { providerUserId: providerId },
@@ -100,7 +98,6 @@ module.exports = function (passport) {
         profile.id,
         profile.photos[0].value,
       );
-      console.log(user)
       return done(null, user);
     } catch (err) { return done(err); }
   }));

@@ -60,10 +60,10 @@ exports.sendUploadToGCS = async (req, res, next) => {
   });
 
   blobStream.end(sharpImage);
-};
+}
 
 exports.deleteFromGCS = (pic) => {
   const fileName = pic.slice(49);
   const image = bucket.file(fileName);
   image.delete();
-};
+}
