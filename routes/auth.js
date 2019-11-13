@@ -60,21 +60,23 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
 
 auth.post('/registration', asyncMiddleware(async (req, res) => {
   const hash = await getHash(req.body.password);
-  const user = await User.findOrCreate({
-    where: { email: req.body.email },
-    defaults: {
+  const isUser = await User.findOne({ where: { email: req.body.email } });
+  if (!isUser) {
+    const user = await User.create({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       password: hash,
-    }
-  });
+    });
 
-  req.login(user, (err) => {
-    if (err) { throw err }
-    infoLogger.info('create new user');
-    res.send({ data: user });
-  });
+    req.login(user, (err) => {
+      if (err) { throw err }
+      infoLogger.info('create new user');
+      res.send({ data: user });
+    });
+  } else {
+    res.redirect('/login');
+  }
 }));
 
 auth.post('/login', loginLimiter, passport.authenticate('local'), (req, res) => {

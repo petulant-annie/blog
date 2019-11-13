@@ -35,6 +35,7 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
 }));
 
 usersRouter.get('/:id', asyncMiddleware(async (req, res) => {
+  console.log(req.params)
   if (!req.params.id ||
     isNaN(parseInt(req.params.id))) {
     throw new Error('no such user');
