@@ -36,6 +36,10 @@ User.associate = (models) => {
     as: 'article',
     foreignKey: 'authorId',
   });
+  User.hasMany(models.Comment, {
+    as: 'comment',
+    foreignKey: 'authorId',
+  });
   User.hasOne(models.OauthAccount, {
     as: 'oauth',
     foreignKey: 'userId',

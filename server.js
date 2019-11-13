@@ -1,13 +1,17 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const redis = require('redis');
-const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
+const socketio = require('socket.io');
+const adapter = require('socket.io-redis');
+const passportSocketIo = require('passport.socketio');
 
 const router = require('./routes/main');
 const sequelize = require('./dbConnection');
@@ -31,7 +35,7 @@ redisClient.on('error', (err) => {
   errorLogger.error(err, err.message)
 });
 
-app.use(session({
+const sessionConfig = {
   store: new RedisStore({
     client: redisClient,
   }),
@@ -40,19 +44,37 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 600000 },
-}));
+}
+
+app.use(session(sessionConfig));
 
 app.use(limiter);
 
 app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);
+// passport.serializeUser((currentId, done) => { done(null, currentId); });
+// passport.deserializeUser((currentId, done) => { done(null, currentId); });
 
 app.use('/', router);
 app.use((err, req, res) => {
   errorLogger.error(err, err.message);
   res.status(500).send(err);
 });
+
+const server = http.createServer(app);
+const io = socketio(server);
+
+io.adapter(adapter(process.env.REDIS_URL));
+io.use(passportSocketIo.authorize({
+  key: sessionConfig.name,
+  secret: sessionConfig.secret,
+  store: sessionConfig.store,
+  fail: (data, message, error, accept) => {
+    accept();
+  },
+}));
+
 
 sequelize
   .authenticate()
@@ -61,7 +83,7 @@ sequelize
     mongoose.connect(`${process.env.MONGO_DB}`,
       { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
         if (err) { return errorLogger.error(err, err.message) }
-        app.listen(PORT, () => infoLogger.info(`Server started on port ${PORT}`));
+        server.listen(PORT, () => infoLogger.info(`Server started on port ${PORT}`));
       });
   })
   .catch(err => {
