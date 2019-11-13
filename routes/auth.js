@@ -75,7 +75,7 @@ auth.post('/registration', asyncMiddleware(async (req, res) => {
       res.send({ data: user });
     });
   } else {
-    res.redirect('/login');
+    res.redirect(401, '/login');
   }
 }));
 
