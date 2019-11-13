@@ -45,9 +45,11 @@ auth.put('/profile/picture', isLoggedIn,
 
 auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   const avatar = await User.findOne({ where: { id: req.user.id } });
-  google.deleteFromGCS(avatar.picture);
-  const pictures = await Article.findAll({ where: { authorId: req.user.id } });
-  pictures.map(item => { google.deleteFromGCS(item.picture); });
+  if (avatar.picture) {
+    google.deleteFromGCS(avatar.picture);
+    const pictures = await Article.findAll({ where: { authorId: req.user.id } });
+    pictures.map(item => { google.deleteFromGCS(item.picture); });
+  }
 
   const users = await User.destroy({ where: { id: req.user.id } });
   await Views.deleteMany({ authorId: req.user.id });
@@ -58,7 +60,7 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
 
 auth.post('/registration', asyncMiddleware(async (req, res) => {
   const hash = await getHash(req.body.password);
-  const user = await User.create({
+  const user = await User.findOrCreate({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
