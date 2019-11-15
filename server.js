@@ -17,7 +17,7 @@ const router = require('./routes/main');
 const sequelize = require('./dbConnection');
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
-const { limiter } = require('./limiter');
+const { limiter, rateLimiter } = require('./limiter');
 
 const app = express();
 
@@ -53,8 +53,8 @@ app.use(limiter);
 app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);
-// passport.serializeUser((currentId, done) => { done(null, currentId); });
-// passport.deserializeUser((currentId, done) => { done(null, currentId); });
+passport.serializeUser((currentId, done) => { done(null, currentId); });
+passport.deserializeUser((currentId, done) => { done(null, currentId); });
 
 app.use('/', router);
 app.use((err, req, res) => {
@@ -70,72 +70,77 @@ io.use(passportSocketIo.authorize({
   key: sessionConfig.name,
   secret: sessionConfig.secret,
   store: sessionConfig.store,
-  fail: (data, message, error, accept) => {
-    accept();
-  },
+  fail: (data, message, error, accept) => { accept(); },
 }));
 
-io.use((socket, next) => {
-  // 
-  next();
-});
+io.use((socket, next) => { next(); });
 
-
-io.on('connection', function (socket) {
-  console.log(`Socket ${socket.id} connected.`);
+io.on('connect', (socket) => {
   io.of('/').adapter.clients((err, clients) => {
     console.log(`${clients.length} clients connected.`);
   });
-  console.log(socket.request.user)
   // const userId = socket.request.user.id;
-  const userName = socket.request.user.name || 'Anonymous';
+  const userName = socket.request.user.lastName || 'Anonymous';
   // const isLoggedIn = socket.request.user.logged_in || false;
-  // const ip = socket.request.connection.remoteAddress;
+  const ip = socket.request.connection.remoteAddress;
 
-  socket.use((packet) => {
-    // socket.use((packet, next) => {
+  socket.use((packet, next) => {
     const event = packet[0];
     console.log({ event });
-    // rateLimiter.consume(ip).then((consume) => {
-    //   console.log({ consume })
-    //   next()
-    // }).catch((consume) => {
-    //   next(new Error('Rate limit error'));
-    // });
+    rateLimiter.consume(ip).then(() => {
+      next();
+    }).catch(() => { next(new Error('Rate limit error')); });
   })
 
-  socket.on('join', (roomId) => {
-    console.log('Joining to room id', roomId);
+  socket.on('watch-comments', (articleId) => {
+    console.log('comment to article id', articleId);
     // check permission ?
-    socket.join(`room-${roomId}`, () => {
+    socket.join(`article-${articleId}`, () => {
       const rooms = Object.keys(socket.rooms);
-      const message = `${userName} has joined to room ${roomId}`;
+      const message = `${userName} has joined to article ${articleId}`;
       console.log(message);
       console.log(rooms);
-      io.to(`room-${roomId}`).emit('message', { roomId, message })
+      io.to(`article-${articleId}`).emit('message', { articleId, message })
     });
   });
 
-  socket.on('leave', (roomId) => {
-    console.log('Leaving room id', roomId);
-    socket.leave(`room-${roomId}`, () => {
+  socket.on('comment-typing', (articleId) => {
+    console.log('comment-typing to article id', articleId);
+
+    console.log(articleId)
+    socket.join(`articleId-${articleId}`, () => {
       const rooms = Object.keys(socket.rooms);
-      const message = `${userName} has left room ${roomId}`;
+      const message = `${userName} has joined to article ${articleId}`;
       console.log(message);
       console.log(rooms);
-      io.to(`room-${roomId}`).emit('message', { roomId, message })
+      io.to(`article-${articleId}`).emit('message', { articleId, message })
     });
   });
 
-  socket.on('message', (roomId, message) => {
-    console.log('Message', roomId, message);
-    io.to(`room-${roomId}`).emit('message', { roomId, message: `${userName} ${message}` });
+  socket.on('comment', (articleId) => {
+    console.log('comment to article id', articleId);
+
+    console.log(articleId)
+    socket.join(`articleId-${articleId}`, () => {
+      const rooms = Object.keys(socket.rooms);
+      const message = `${userName} has joined to article ${articleId}`;
+      console.log(message);
+      console.log(rooms);
+      io.to(`article-${articleId}`).emit('message', { articleId, message })
+    });
   });
 
-  socket.on('disconnect', (reason) => {
-    console.log(`Socket ${socket.id} disconnected. Reason:`, reason);
-    console.log(socket.request.user)
-  })
+  socket.on('unwatch-comments', (articleId) => {
+    console.log('Leaving article id', articleId);
+    socket.leave(`article-${articleId}`, () => {
+      const rooms = Object.keys(socket.rooms);
+      const message = `${userName} has left article ${articleId}`;
+      console.log(message);
+      console.log(rooms);
+      io.to(`article-${articleId}`).emit('message', { articleId, message })
+    });
+  });
+
 });
 
 sequelize

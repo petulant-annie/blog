@@ -1,19 +1,38 @@
 const express = require('express');
 const articlesRouter = express.Router();
 const mongoose = require('mongoose');
+// const Sequelize = require('sequelize');
+// const { gt } = Sequelize.Op;
 
-const { User, Article, Comment } = require('../models/index');
+const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
 const infoLogger = require('../loggers/infoLogger').logger;
 const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const google = require('../google-cloud-storage');
+const commentsRouter = require('./comments');
+// const count = 1;
+
+articlesRouter.use('/:articleId/comments', commentsRouter);
 
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
+  // let createdAt = 0;
+  // let id = 0;
+  // if (req.query.after) {
+  //   const after = req.query.after.split('_')
+  //   createdAt = after[0];
+  //   id = after[1];
+  // }
+
   const article = await Article.findAll({
     order: [['id', 'DESC']],
     include: [{ model: User, as: 'author' }],
+    // where: {
+    // id: { [gt]: id },
+    // createdAt: { [gt]: createdAt < Sequelize.NOW },
+    // },
+    // limit: count,
     raw: true,
     nest: true,
   });
@@ -50,30 +69,6 @@ articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
         $inc: { views: 1 }
       }, { new: true });
       viewsLogger.info(`get id:${req.params.id} article`);
-
-      articlesRouter.get('/:id/comments', asyncMiddleware(async (req, res) => {
-        const comment = await Comment.findOne({
-          include: [
-            { model: User, as: 'author' }
-          ],
-          where: { articleId: req.params.id },
-          raw: true,
-          nest: true,
-        });
-        if (comment) {
-          res.send({ data: comment });
-        } else { res.send({ data: [] }); }
-      }));
-
-      articlesRouter.post('/:id/comments', asyncMiddleware(async (req, res) => {
-        console.log(req.user.id)
-        await Comment.create({
-          content: req.body.content,
-          articleId: req.params.id,
-          authorId: 1,
-        }); 
-        res.redirect('/:id/comments');
-      }))
 
       res.send({ data: { ...article, views: viewsCount.views } });
     }
