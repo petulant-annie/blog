@@ -7,7 +7,6 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const redis = require('redis');
 const RedisStore = require('connect-redis')(session);
 const socketio = require('socket.io');
 const adapter = require('socket.io-redis');
@@ -17,14 +16,11 @@ const router = require('./routes/main');
 const sequelize = require('./dbConnection');
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
-const { limiter, rateLimiter } = require('./limiter');
+const { redisClient, limiter, rateLimiter } = require('./limiter');
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const redisClient = redis.createClient(
-  { url: process.env.REDIS_URL }
-);
 
 app.set('trust proxy', 1);
 app.use(bodyParser.json());
@@ -47,7 +43,6 @@ const sessionConfig = {
 }
 
 app.use(session(sessionConfig));
-
 app.use(limiter);
 
 app.use(passport.initialize());
@@ -75,70 +70,40 @@ io.use(passportSocketIo.authorize({
 
 io.use((socket, next) => { next(); });
 
-io.on('connect', (socket) => {
+io.on('connection', (socket) => {
   io.of('/').adapter.clients((err, clients) => {
     console.log(`${clients.length} clients connected.`);
   });
-  // const userId = socket.request.user.id;
-  const userName = socket.request.user.lastName || 'Anonymous';
+  // const lastName = socket.request.user.lastName || 'Anonymous';
   // const isLoggedIn = socket.request.user.logged_in || false;
   const ip = socket.request.connection.remoteAddress;
 
   socket.use((packet, next) => {
     const event = packet[0];
     console.log({ event });
-    rateLimiter.consume(ip).then(() => {
-      next();
-    }).catch(() => { next(new Error('Rate limit error')); });
+    rateLimiter.consume(ip).then(() => { next(); })
+      .catch(() => { next(new Error('Rate limit error')); });
   })
 
-  socket.on('watch-comments', (articleId) => {
-    console.log('comment to article id', articleId);
-    // check permission ?
-    socket.join(`article-${articleId}`, () => {
-      const rooms = Object.keys(socket.rooms);
-      const message = `${userName} has joined to article ${articleId}`;
-      console.log(message);
-      console.log(rooms);
-      io.to(`article-${articleId}`).emit('message', { articleId, message })
-    });
-  });
+  socket.on('watch-comments', () => { });
 
-  socket.on('comment-typing', (articleId) => {
-    console.log('comment-typing to article id', articleId);
+  socket.on('comment-typing', () => { });
 
-    console.log(articleId)
-    socket.join(`articleId-${articleId}`, () => {
-      const rooms = Object.keys(socket.rooms);
-      const message = `${userName} has joined to article ${articleId}`;
-      console.log(message);
-      console.log(rooms);
-      io.to(`article-${articleId}`).emit('message', { articleId, message })
-    });
-  });
-
-  socket.on('comment', (articleId) => {
-    console.log('comment to article id', articleId);
-
-    console.log(articleId)
-    socket.join(`articleId-${articleId}`, () => {
-      const rooms = Object.keys(socket.rooms);
-      const message = `${userName} has joined to article ${articleId}`;
-      console.log(message);
-      console.log(rooms);
-      io.to(`article-${articleId}`).emit('message', { articleId, message })
-    });
+  socket.on('comment', (articleId, message) => {
+    console.log(articleId, message);
+    // if (isLoggedIn) {
+    //   socket.join(`articleId-${payload}`, () => {
+    //     const rooms = Object.keys(socket.rooms);
+    //     const message = `${lastName} is typing...`;
+    //     console.log(message);
+    //     console.log(rooms);
+    io.to(`room-${articleId}`).emit('comment', 'hello' );
+    //   });
+    // }
   });
 
   socket.on('unwatch-comments', (articleId) => {
-    console.log('Leaving article id', articleId);
-    socket.leave(`article-${articleId}`, () => {
-      const rooms = Object.keys(socket.rooms);
-      const message = `${userName} has left article ${articleId}`;
-      console.log(message);
-      console.log(rooms);
-      io.to(`article-${articleId}`).emit('message', { articleId, message })
-    });
+    socket.leave(`article-${articleId}`, () => { });
   });
 
 });

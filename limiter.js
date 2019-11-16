@@ -33,4 +33,4 @@ const rateLimiter = new RateLimiterRedis({
   duration: 1,
 });
 
-module.exports = { limiter, loginLimiter, rateLimiter };
+module.exports = { limiter, loginLimiter, rateLimiter, redisClient };

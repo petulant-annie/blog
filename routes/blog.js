@@ -1,8 +1,8 @@
 const express = require('express');
 const articlesRouter = express.Router();
 const mongoose = require('mongoose');
-// const Sequelize = require('sequelize');
-// const { gt } = Sequelize.Op;
+const Sequelize = require('sequelize');
+const { lt, lte, and } = Sequelize.Op;
 
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
@@ -12,27 +12,38 @@ const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const google = require('../google-cloud-storage');
 const commentsRouter = require('./comments');
-// const count = 1;
+const count = 5;
+
+const articlesSelect = (req) => {
+  const today = new Date().toUTCString();
+  let publishedAt = today;
+  let id = 1e9;
+
+  if (req.query.after) {
+    const after = req.query.after.split('_');
+    publishedAt = after[0];
+    id = after[1];
+  }
+
+  return {
+    publishedAt,
+    id,
+  }
+}
 
 articlesRouter.use('/:articleId/comments', commentsRouter);
-
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
-  // let createdAt = 0;
-  // let id = 0;
-  // if (req.query.after) {
-  //   const after = req.query.after.split('_')
-  //   createdAt = after[0];
-  //   id = after[1];
-  // }
+  const today = new Date().toUTCString();
+  const select = articlesSelect(req);
 
   const article = await Article.findAll({
     order: [['id', 'DESC']],
     include: [{ model: User, as: 'author' }],
-    // where: {
-    // id: { [gt]: id },
-    // createdAt: { [gt]: createdAt < Sequelize.NOW },
-    // },
-    // limit: count,
+    where: {
+      id: { [lt]: select.id },
+      publishedAt: { [and]: [{ [lte]: select.publishedAt }, { [lte]: today }] },
+    },
+    limit: count,
     raw: true,
     nest: true,
   });
