@@ -70,11 +70,11 @@ io.use(passportSocketIo.authorize({
 }));
 
 io.use((socket, next) => { next(); });
-io.of('/').adapter.clients((err, clients) => {
-  console.log(`${clients.length} clients connected.`);
-});
 
 const onConnect = (socket) => {
+  io.of('/').adapter.clients((err, clients) => {
+    console.log(`${clients.length} clients connected.`);
+  });
   // const lastName = socket.request.user.lastName || 'Anonymous';
   // const isLoggedIn = socket.request.user.logged_in || false;
   const ip = socket.request.connection.remoteAddress;
@@ -86,11 +86,7 @@ const onConnect = (socket) => {
       .catch(() => { next(new Error('Rate limit error')); });
   });
 
-  socket.on('watch-comments', () => {
-
-
-  });
-
+  socket.on('watch-comments', () => { });
 
   socket.on('comment-typing', (roomId) => {
     socket.join(`room-${roomId}`, () => {
@@ -98,35 +94,11 @@ const onConnect = (socket) => {
     });
   });
 
-  socket.on('unwatch-comments', (articleId) => {
-    socket.leave(`article-${articleId}`, () => { });
+  socket.on('unwatch-comments', () => {
+    // socket.leave(`article-${articleId}`, () => { });
   });
 };
-
-const onCreate = (socket) => {
-  // socket.use((packet, next) => {
-  //   const event = packet[0];
-  //   console.log({ event });
-  //   rateLimiter.consume(ip).then(() => { next(); })
-  //     .catch(() => { next(new Error('Rate limit error')); });
-  // });
-
-  // socket.on('comment', (articleId) => {
-  //   console.log(articleId);
-  // if (isLoggedIn) {
-  //   socket.join(`articleId-${payload}`, () => {
-  //     const rooms = Object.keys(socket.rooms);
-  //     const message = `${lastName} is typing...`;
-  //     console.log(message);  
-  //     console.log(rooms);
-  socket.emit('comment', 'hello');
-  //   });
-  // }
-  // });
-}
-
 io.on('connection', onConnect);
-io.on('create', onCreate);
 
 sequelize
   .authenticate()
