@@ -1,5 +1,6 @@
 const express = require('express');
 const Sequelize = require('sequelize');
+const { check, validationResult } = require('express-validator');
 const { lt } = Sequelize.Op;
 const commentsRouter = express.Router({ mergeParams: true });
 
@@ -34,26 +35,36 @@ commentsRouter.get('/', asyncMiddleware(async (req, res) => {
   }
 }));
 
-commentsRouter.post('/', isLoggedIn, asyncMiddleware(async (req, res) => {
-  await Comment.create({
-    content: req.body.content,
-    articleId: req.params.articleId,
-    authorId: req.user.id,
-  });
+commentsRouter.post('/',
+  [
+    check('content').isString(),
+    isLoggedIn,
+  ],
+  asyncMiddleware(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
 
-  const comment = await Comment.findOne({
-    include: [
-      { model: User, as: 'author' }
-    ],
-    where: {
+    await Comment.create({
       content: req.body.content,
       articleId: req.params.articleId,
       authorId: req.user.id,
-    }
-  });
-  req.app.locals.socket.emit('comment', { action: 'create', data: { comment } });
-  res.send({ data: comment });
-}));
+    });
+
+    const comment = await Comment.findOne({
+      include: [
+        { model: User, as: 'author' }
+      ],
+      where: {
+        content: req.body.content,
+        articleId: req.params.articleId,
+        authorId: req.user.id,
+      }
+    });
+    req.app.locals.socket.emit('comment', { action: 'create', data: { comment } });
+    res.send({ data: comment });
+  }));
 
 commentsRouter.delete('/:id', isLoggedIn, asyncMiddleware(async (req, res) => {
   const comment = await Comment.findOne({ where: { id: req.params.id } })

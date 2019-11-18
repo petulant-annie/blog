@@ -3,6 +3,7 @@ const articlesRouter = express.Router();
 const mongoose = require('mongoose');
 const Sequelize = require('sequelize');
 const { lt, lte, and } = Sequelize.Op;
+const { check, validationResult } = require('express-validator');
 
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
@@ -89,7 +90,15 @@ articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
 articlesRouter.post('/',
   google.upload.single('picture'),
   google.sendUploadToGCS,
+  [
+    check('title').isLength({ min: 1, max: 230 }),
+    check('content').isLength({ min: 1, max: 255 }),
+  ],
   asyncMiddleware(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     let pic = '';
     if (req.file && req.file.gcsUrl) {
       pic = req.file.gcsUrl;
@@ -116,7 +125,15 @@ articlesRouter.post('/',
 articlesRouter.put('/:id',
   google.upload.single('picture'),
   google.sendUploadToGCS,
+  [
+    check('title').isLength({ min: 1, max: 230 }),
+    check('content').isLength({ min: 1, max: 255 }),
+  ],
   asyncMiddleware(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     let pic;
 
     if (req.file && req.file.gcsUrl) {
