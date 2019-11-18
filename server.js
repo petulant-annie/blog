@@ -66,14 +66,10 @@ io.use(passportSocketIo.authorize({
 io.use((socket, next) => { next(); });
 
 const onConnect = (socket) => {
-  io.of('/').adapter.clients((err, clients) => {
-    console.log(`${clients.length} clients connected.`);
-  });
+  io.of('/').adapter.clients(() => { });
   const ip = socket.request.connection.remoteAddress;
 
   socket.use((packet, next) => {
-    const event = packet[0];
-    console.log({ event });
     rateLimiter.consume(ip).then(() => { next(); })
       .catch(() => { next(new Error('Rate limit error')); });
   });
