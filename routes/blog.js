@@ -16,24 +16,24 @@ const count = 5;
 
 const articlesSelect = (req) => {
   const today = new Date().toUTCString();
-  let publishedAt = today;
+  let createdAt = today;
   let id = 1e9;
 
   if (req.query.after) {
     const after = req.query.after.split('_');
-    publishedAt = after[0];
+    createdAt = after[0];
     id = after[1];
   }
 
   return {
-    publishedAt,
+    createdAt,
     id,
   }
 }
 
 articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
-  const today = new Date().toUTCString();
+  const today = new Date();
   const select = articlesSelect(req);
 
   const article = await Article.findAll({
@@ -41,7 +41,7 @@ articlesRouter.get('/', asyncMiddleware(async (req, res) => {
     include: [{ model: User, as: 'author' }],
     where: {
       id: { [lt]: select.id },
-      publishedAt: { [and]: [{ [lte]: select.publishedAt }, { [lte]: today }] },
+      createdAt: { [and]: [{ [lte]: select.createdAt }, { [lte]: today }] },
     },
     limit: count,
     raw: true,

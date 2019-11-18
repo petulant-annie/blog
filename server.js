@@ -51,12 +51,6 @@ require('./config/passport')(passport);
 passport.serializeUser((currentId, done) => { done(null, currentId); });
 passport.deserializeUser((currentId, done) => { done(null, currentId); });
 
-app.use('/', router);
-app.use((err, req, res) => {
-  errorLogger.error(err, err.message);
-  res.status(500).send(err);
-});
-
 const server = http.createServer(app);
 const io = socketio(server);
 
@@ -75,8 +69,6 @@ const onConnect = (socket) => {
   io.of('/').adapter.clients((err, clients) => {
     console.log(`${clients.length} clients connected.`);
   });
-  // const lastName = socket.request.user.lastName || 'Anonymous';
-  // const isLoggedIn = socket.request.user.logged_in || false;
   const ip = socket.request.connection.remoteAddress;
 
   socket.use((packet, next) => {
@@ -88,17 +80,25 @@ const onConnect = (socket) => {
 
   socket.on('watch-comments', () => { });
 
-  socket.on('comment-typing', (roomId) => {
-    socket.join(`room-${roomId}`, () => {
-      socket.to(`room-${roomId}`).emit('comment-typing', roomId);
+  socket.on('comment-typing', (articleId) => {
+    socket.join(`room-${articleId}`, () => {
+      socket.to(`room-${articleId}`).emit('comment-typing', articleId);
     });
   });
 
-  socket.on('unwatch-comments', () => {
-    // socket.leave(`article-${articleId}`, () => { });
+  socket.on('unwatch-comments', (articleId) => {
+    socket.leave(`article-${articleId}`, () => { });
   });
+
 };
 io.on('connection', onConnect);
+app.locals.socket = io;
+
+app.use('/', router);
+app.use((err, req, res) => {
+  errorLogger.error(err, err.message);
+  res.status(500).send(err);
+});
 
 sequelize
   .authenticate()

@@ -6,7 +6,6 @@ const commentsRouter = express.Router({ mergeParams: true });
 const isLoggedIn = require('../config/isLogged');
 const asyncMiddleware = require('../asyncMiddleware');
 const { User, Comment } = require('../models/index');
-
 const count = 5;
 
 commentsRouter.get('/', asyncMiddleware(async (req, res) => {
@@ -52,13 +51,15 @@ commentsRouter.post('/', isLoggedIn, asyncMiddleware(async (req, res) => {
       authorId: req.user.id,
     }
   });
-
+  req.app.locals.socket.emit('comment', { action: 'create', data: { comment } });
   res.send({ data: comment });
 }));
 
 commentsRouter.delete('/:id', isLoggedIn, asyncMiddleware(async (req, res) => {
-  const comment = await Comment.destroy({ where: { id: req.params.id } });
+  const comment = await Comment.findOne({ where: { id: req.params.id } })
+  await Comment.destroy({ where: { id: req.params.id } });
 
+  req.app.locals.socket.emit('comment', { action: 'destroy', data: { comment } });
   res.send({ data: comment })
 }));
 
