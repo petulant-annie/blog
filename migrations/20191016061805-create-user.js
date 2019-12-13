@@ -25,6 +25,19 @@ module.exports = {
       picture: {
         type: Sequelize.STRING,
       },
+      isVerified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
+      isPro: {
+        type: Sequelize.BOOLEAN,
+      },
+      stripeCustomerId: {
+        type: Sequelize.STRING,
+      },
+      stripeCardId: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

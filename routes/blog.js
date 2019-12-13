@@ -20,7 +20,6 @@ const articlesSelect = (req) => {
   const today = new Date().toUTCString();
   let createdAt = today;
   let id = 1e9;
-
   if (req.query.after) {
     const after = req.query.after.split('_');
     createdAt = after[0];

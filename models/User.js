@@ -21,6 +21,19 @@ User.init({
   picture: {
     type: DataTypes.STRING,
   },
+  isVerified: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+  },
+  isPro: {
+    type: DataTypes.BOOLEAN,
+  },
+  stripeCustomerId: {
+    type: DataTypes.STRING,
+  },
+  stripeCardId: {
+    type: DataTypes.STRING,
+  },
 }, {
   sequelize,
   modelName: 'users',

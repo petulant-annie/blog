@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt');
 const { User, OauthAccount } = require('../models/index');
 
 const userAuth = async (firstName, lastName, email, provider, providerId, picture) => {
-
   const addAccount = (id) => {
     OauthAccount.findOrCreate({
       where: { providerUserId: providerId },
@@ -29,6 +28,7 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
       lastName: lastName,
       email: email,
       picture: picture,
+      isVerified: true,
     });
     addAccount(newUser.id);
     return newUser;
@@ -45,7 +45,7 @@ module.exports = function (passport) {
       async (email, password, done) => {
         try {
           const user = await User.unscoped().findOne({
-            where: { email: email },
+            where: { email: email, isVerified: true },
             raw: true,
             nest: true,
           })

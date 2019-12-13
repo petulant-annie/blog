@@ -29,10 +29,11 @@ auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   infoLogger.info(`update ${req.body.id} user`);
 
 
-    res.send({ data: user });
-  }));
+  res.send({ data: user });
+}));
 
-auth.put('/profile/picture', isLoggedIn,
+auth.put('/profile/picture',
+  isLoggedIn,
   google.upload.single('picture'),
   google.sendUploadToGCS,
   asyncMiddleware(async (req, res) => {
@@ -60,8 +61,8 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   infoLogger.info(`delete user id:${req.user.id}`);
 
 
-    res.send({ data: user });
-  }));
+  res.send({ data: users });
+}));
 
 auth.post('/registration',
   [
@@ -92,6 +93,8 @@ auth.post('/registration',
       res.redirect(401, '/login');
     }
   }));
+
+auth.post('registration/verify', () => { })
 
 auth.post('/login',
   [
@@ -139,7 +142,7 @@ auth.get('/jwtencode', asyncMiddleware(async (req, res) => {
 }));
 
 
-auth.post('/jwtdecode', getTokens.verifyToken, asyncMiddleware(async(req, res) => {
+auth.post('/jwtdecode', getTokens.verifyToken, asyncMiddleware(async (req, res) => {
 
   jwt.verify(req.token, process.env.SESSION_SECRET, async (err, authData) => {
     if (err) {

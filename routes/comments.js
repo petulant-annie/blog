@@ -46,31 +46,27 @@ commentsRouter.post('/',
       return res.status(422).json({ errors: errors.array() });
     }
 
-    await Comment.create({
+    const newComment = await Comment.create({
       content: req.body.content,
       articleId: req.params.articleId,
       authorId: req.user.id,
     });
 
-    const comment = await Comment.findOne({
-      include: [
-        { model: User, as: 'author' }
-      ],
-      where: {
-        content: req.body.content,
-        articleId: req.params.articleId,
-        authorId: req.user.id,
-      }
-    });
-    req.app.locals.socket.emit('comment', { action: 'create', data: { comment } });
+    const comment = await Comment.findByPk(
+      newComment.authorId, {
+        include: [
+          { model: User, as: 'author' }
+        ],
+      });
+    req.app.locals.socket.to(`room-${req.params.articleId}`, { action: 'create', data: { comment } });
     res.send({ data: comment });
   }));
 
 commentsRouter.delete('/:id', isLoggedIn, asyncMiddleware(async (req, res) => {
   const comment = await Comment.findOne({ where: { id: req.params.id } })
-  await Comment.destroy({ where: { id: req.params.id } });
+  await comment.destroy();
 
-  req.app.locals.socket.emit('comment', { action: 'destroy', data: { comment } });
+  req.app.locals.socket.to(`room-${req.params.articleId}`, { action: 'destroy', data: { comment } });
   res.send({ data: comment })
 }));
 

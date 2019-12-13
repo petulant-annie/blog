@@ -2,7 +2,7 @@ const Multer = require('multer');
 const { Storage } = require('@google-cloud/storage');
 const sharp = require('sharp');
 
-const storage = new Storage({ keyFilename: './service-key.json' });
+const storage = new Storage({ keyFilename: './gsc-blog.json' });
 const bucket = storage.bucket(process.env.GCS_BUCKET);
 
 const fileFilter = (req, file, done) => {
