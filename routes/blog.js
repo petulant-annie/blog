@@ -1,6 +1,9 @@
 const express = require('express');
 const articlesRouter = express.Router();
 const mongoose = require('mongoose');
+const Sequelize = require('sequelize');
+const { lt, lte, and } = Sequelize.Op;
+const { check, validationResult } = require('express-validator');
 
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
@@ -10,10 +13,40 @@ const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const google = require('../google-cloud-storage');
 
+const commentsRouter = require('./comments');
+const count = 5;
+
+const articlesSelect = (req) => {
+  const today = new Date().toUTCString();
+  let createdAt = today;
+  let id = 1e9;
+
+  if (req.query.after) {
+    const after = req.query.after.split('_');
+    createdAt = after[0];
+    id = after[1];
+  }
+
+  return {
+    createdAt,
+    id,
+  }
+}
+
+
+articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
+  const today = new Date();
+  const select = articlesSelect(req);
+
   const article = await Article.findAll({
     order: [['id', 'DESC']],
     include: [{ model: User, as: 'author' }],
+    where: {
+      id: { [lt]: select.id },
+      createdAt: { [and]: [{ [lte]: select.createdAt }, { [lte]: today }] },
+    },
+    limit: count,
     raw: true,
     nest: true,
   });
@@ -59,7 +92,16 @@ articlesRouter.get('/:id', asyncMiddleware(async (req, res) => {
 articlesRouter.post('/',
   google.upload.single('picture'),
   google.sendUploadToGCS,
+  [
+    check('title').isLength({ min: 1, max: 230 }),
+    check('content').isLength({ min: 1, max: 255 }),
+  ],
   asyncMiddleware(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
     let pic = '';
     if (req.file && req.file.gcsUrl) {
       pic = req.file.gcsUrl;
@@ -86,7 +128,16 @@ articlesRouter.post('/',
 articlesRouter.put('/:id',
   google.upload.single('picture'),
   google.sendUploadToGCS,
+  [
+    check('title').isLength({ min: 1, max: 230 }),
+    check('content').isLength({ min: 1, max: 255 }),
+  ],
   asyncMiddleware(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
     let pic;
 
     if (req.file && req.file.gcsUrl) {

@@ -1,6 +1,7 @@
 const redis = require('redis');
 const RateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis');
+const { RateLimiterRedis } = require('rate-limiter-flexible');
 
 const redisClient = redis.createClient({
   url: process.env.REDIS_URL
@@ -25,4 +26,11 @@ const loginLimiter = new RateLimit({
   delayMs: 0,
 });
 
-module.exports = { limiter, loginLimiter };
+const rateLimiter = new RateLimiterRedis({
+  redis: redisClient,
+  keyPrefix: 'anna:socket:rl:',
+  points: 6,
+  duration: 1,
+});
+
+module.exports = { limiter, loginLimiter, rateLimiter, redisClient };

@@ -1,26 +1,26 @@
 require('dotenv').config();
+const http = require('http');
 const express = require('express');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const redis = require('redis');
-const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
+const socketio = require('socket.io');
+const adapter = require('socket.io-redis');
+const passportSocketIo = require('passport.socketio');
 
 const router = require('./routes/main');
 const sequelize = require('./dbConnection');
 const errorLogger = require('./loggers/errorLogger').logger;
 const infoLogger = require('./loggers/infoLogger').logger;
-const { limiter } = require('./limiter');
+const { redisClient, limiter, rateLimiter } = require('./limiter');
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const redisClient = redis.createClient(
-  { url: process.env.REDIS_URL }
-);
 
 app.set('trust proxy', 1);
 app.use(bodyParser.json());
@@ -31,7 +31,7 @@ redisClient.on('error', (err) => {
   errorLogger.error(err, err.message)
 });
 
-app.use(session({
+const sessionConfig = {
   store: new RedisStore({
     client: redisClient,
   }),
@@ -39,14 +39,56 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 600000 },
-}));
+  cookie: { maxAge: 6000000 },
+}
 
+app.use(session(sessionConfig));
 app.use(limiter);
 
 app.use(passport.initialize());
 app.use(passport.session());
 require('./config/passport')(passport);
+passport.serializeUser((currentId, done) => { done(null, currentId); });
+passport.deserializeUser((currentId, done) => { done(null, currentId); });
+
+const server = http.createServer(app);
+const io = socketio(server);
+
+io.adapter(adapter(process.env.REDIS_URL));
+io.use(passportSocketIo.authorize({
+  key: sessionConfig.name,
+  secret: sessionConfig.secret,
+  store: sessionConfig.store,
+  success: (data, accept) => { accept(); },
+  fail: (data, message, error, accept) => { accept(); },
+}));
+
+io.use((socket, next) => { next(); });
+
+const onConnect = (socket) => {
+  io.of('/').adapter.clients(() => { });
+  const ip = socket.request.connection.remoteAddress;
+
+  socket.use((packet, next) => {
+    rateLimiter.consume(ip).then(() => { next(); })
+      .catch(() => { next(new Error('Rate limit error')); });
+  });
+
+  socket.on('watch-comments', () => { });
+
+  socket.on('comment-typing', (articleId) => {
+    socket.join(`room-${articleId}`, () => {
+      socket.to(`room-${articleId}`).emit('comment-typing', articleId);
+    });
+  });
+
+  socket.on('unwatch-comments', (articleId) => {
+    socket.leave(`article-${articleId}`, () => { });
+  });
+
+};
+io.on('connection', onConnect);
+app.locals.socket = io;
 
 app.use('/', router);
 app.use((err, req, res) => {
@@ -61,7 +103,7 @@ sequelize
     mongoose.connect(`${process.env.MONGO_DB}`,
       { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
         if (err) { return errorLogger.error(err, err.message) }
-        app.listen(PORT, () => infoLogger.info(`Server started on port ${PORT}`));
+        server.listen(PORT, () => infoLogger.info(`Server started on port ${PORT}`));
       });
   })
   .catch(err => {
