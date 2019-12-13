@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const { User, OauthAccount } = require('../models/index');
 
 const userAuth = async (firstName, lastName, email, provider, providerId, picture) => {
+
   const addAccount = (id) => {
     OauthAccount.findOrCreate({
       where: { providerUserId: providerId },
