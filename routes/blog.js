@@ -12,6 +12,7 @@ const infoLogger = require('../loggers/infoLogger').logger;
 const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const google = require('../google-cloud-storage');
+
 const commentsRouter = require('./comments');
 const count = 5;
 
@@ -31,6 +32,7 @@ const articlesSelect = (req) => {
     id,
   }
 }
+
 
 articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
@@ -99,6 +101,7 @@ articlesRouter.post('/',
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     }
+
     let pic = '';
     if (req.file && req.file.gcsUrl) {
       pic = req.file.gcsUrl;
@@ -134,6 +137,7 @@ articlesRouter.put('/:id',
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     }
+
     let pic;
 
     if (req.file && req.file.gcsUrl) {
