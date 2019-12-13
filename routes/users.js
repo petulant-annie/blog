@@ -20,16 +20,14 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
     });
 
   const articlesViews = await Views.find({});
-
   const mapped = await users.map(item => {
     let count = [];
     articlesViews.forEach(element => {
       if (element.authorId === item.id) { count.push(element.views) }
     });
-    const reduce = count.reduce((total, amount) => { return total + amount }, 0);
+    const viewsCount = count.reduce((total, amount) => { return total + amount }, 0);
 
-    return { ...item, viewsCount: reduce };
-
+    return { ...item, viewsCount: viewsCount };
   });
   infoLogger.info('get all users');
 
@@ -37,6 +35,7 @@ usersRouter.get('/', asyncMiddleware(async (req, res) => {
 }));
 
 usersRouter.get('/:id', asyncMiddleware(async (req, res) => {
+  console.log(req.params)
   if (!req.params.id ||
     isNaN(parseInt(req.params.id))) {
     throw new Error('no such user');

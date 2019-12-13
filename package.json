@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/petulant-annie/homework5#readme",
   "dependencies": {
+    "@google-cloud/storage": "^4.1.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
     "connect-redis": "^4.0.3",
@@ -49,6 +50,8 @@
     "pm2": "^3.5.1",
     "rate-limit-redis": "^1.6.0",
     "redis": "^2.8.0",
+    "sharp": "^0.23.2",
+    "socket.io": "^2.3.0",
     "winston": "^3.2.1",
     "winston-mongodb": "^5.0.0"
   },

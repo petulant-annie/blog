@@ -18,6 +18,9 @@ User.init({
   password: {
     type: DataTypes.STRING,
   },
+  picture: {
+    type: DataTypes.STRING,
+  },
 }, {
   sequelize,
   modelName: 'users',
