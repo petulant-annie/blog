@@ -28,7 +28,6 @@ auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   const user = await User.findOne({ where: { id: req.user.id } })
   infoLogger.info(`update ${req.body.id} user`);
 
-
   res.send({ data: user });
 }));
 
@@ -128,8 +127,6 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   res.send({ data: users });
 }));
 
-
-
 auth.post('/logout', (req, res) => {
   req.logout();
   infoLogger.info('logout');
@@ -141,22 +138,12 @@ auth.get('/jwtencode', asyncMiddleware(async (req, res) => {
   res.send({ token });
 }));
 
-
 auth.post('/jwtdecode', getTokens.verifyToken, asyncMiddleware(async (req, res) => {
-
   jwt.verify(req.token, process.env.SESSION_SECRET, async (err, authData) => {
     if (err) {
       res.status(401).json(err);
     } else { res.send(authData); }
   });
 }));
-
-passport.serializeUser((currentId, done) => {
-  done(null, currentId);
-});
-
-passport.deserializeUser((currentId, done) => {
-  done(null, currentId);
-});
 
 module.exports = auth;
