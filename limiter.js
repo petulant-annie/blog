@@ -18,7 +18,7 @@ const limiter = new RateLimit({
 const loginLimiter = new RateLimit({
   store: new RedisStore({
     client: redisClient,
-    prefix: 'anna:login:rl',
+    prefix: 'anna:login:rl:',
   }),
   windowMs: 600000,
   max: 20,
