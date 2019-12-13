@@ -1,1 +1,1 @@
-# zazmic blog
+# zazmic internship blog
