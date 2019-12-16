@@ -32,7 +32,6 @@ const articlesSelect = (req) => {
   }
 }
 
-
 articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
   const today = new Date();

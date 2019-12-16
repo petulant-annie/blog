@@ -31,7 +31,7 @@ commentsRouter.get('/', asyncMiddleware(async (req, res) => {
   if (comment) {
     res.send({ data: comment });
   } else {
-    res.send({ data: {} });
+    res.send({ });
   }
 }));
 

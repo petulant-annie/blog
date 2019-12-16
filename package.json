@@ -29,6 +29,7 @@
   "homepage": "https://github.com/petulant-annie/homework5#readme",
   "dependencies": {
     "@google-cloud/storage": "^4.1.0",
+    "@sendgrid/mail": "^6.4.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
     "connect-redis": "^4.0.3",

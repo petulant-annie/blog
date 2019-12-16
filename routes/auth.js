@@ -5,7 +5,6 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 
-
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
 const Views = mongoose.model('articles_views', viewsScheme);
@@ -16,7 +15,7 @@ const asyncMiddleware = require('../asyncMiddleware');
 const { loginLimiter } = require('../limiter');
 const getTokens = require('../getTokens');
 const google = require('../google-cloud-storage');
-
+const sg = require('../sendgrid-template');
 
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await User.update({
@@ -59,7 +58,6 @@ auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await Views.deleteMany({ authorId: req.user.id });
   infoLogger.info(`delete user id:${req.user.id}`);
 
-
   res.send({ data: users });
 }));
 
@@ -73,27 +71,49 @@ auth.post('/registration',
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     }
+
     const hash = await getHash(req.body.password);
     const isUser = await User.findOne({ where: { email: req.body.email } });
+
+    const token = await getTokens.getAccessToken(req.body.email);
+    const link = `${process.env.FRONTED_VERIFY}/verify?token=${token}`;
+
     if (!isUser) {
       const user = await User.create({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: req.body.email,
         password: hash,
+        isVerified: false,
       });
 
-      req.login(user, (err) => {
-        if (err) { throw err }
-        infoLogger.info('create new user');
-        res.send({ data: user });
-      });
-    } else {
-      res.redirect(401, '/login');
+      sg.sendgrid(req.body.email, link);
+      infoLogger.info('registration new user');
+      res.send({ data: user });
     }
-  }));
 
-auth.post('registration/verify', () => { })
+    if (isUser.isVerified) {
+      res.redirect(401, '/login');
+    } else {
+      sg.sendgrid(req.body.email, link);
+      infoLogger.info('new user email verification');
+      res.send({ data: isUser });
+    }
+  })
+);
+
+auth.post('/registration/verify',
+  asyncMiddleware(async (req, res) => {
+    jwt.verify(req.body.token, process.env.SESSION_SECRET, async (err, authData) => {
+      if (err) {
+        res.status(401).json(err);
+      } else {
+        const isUser = await User.findOne({ where: { email: authData.email } });
+        res.send({ data: isUser })
+      }
+    });
+  })
+);
 
 auth.post('/login',
   [
@@ -110,7 +130,8 @@ auth.post('/login',
 
     infoLogger.info('login');
     res.send({ data: req.user });
-  });
+  }
+);
 
 auth.delete('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   const avatar = await User.findOne({ where: { id: req.user.id } });
@@ -132,18 +153,5 @@ auth.post('/logout', (req, res) => {
   infoLogger.info('logout');
   res.send({});
 });
-
-auth.get('/jwtencode', asyncMiddleware(async (req, res) => {
-  const token = await getTokens.getAccessToken(req.query.userName);
-  res.send({ token });
-}));
-
-auth.post('/jwtdecode', getTokens.verifyToken, asyncMiddleware(async (req, res) => {
-  jwt.verify(req.token, process.env.SESSION_SECRET, async (err, authData) => {
-    if (err) {
-      res.status(401).json(err);
-    } else { res.send(authData); }
-  });
-}));
 
 module.exports = auth;
