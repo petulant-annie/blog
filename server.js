@@ -28,7 +28,7 @@ app.use(cookieParser());
 app.use(cors());
 
 redisClient.on('error', (err) => {
-  errorLogger.error(err, err.message)
+  errorLogger.error(err, err.message);
 });
 
 const sessionConfig = {
@@ -40,7 +40,7 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: { maxAge: 6000000 },
-}
+};
 
 app.use(session(sessionConfig));
 app.use(limiter);
@@ -102,7 +102,7 @@ sequelize
     infoLogger.info('Connection has been established successfully.');
     mongoose.connect(`${process.env.MONGO_DB}`,
       { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
-        if (err) { return errorLogger.error(err, err.message) }
+        if (err) { return errorLogger.error(err, err.message); }
         server.listen(PORT, () => infoLogger.info(`Server started on port ${PORT}`));
       });
   })

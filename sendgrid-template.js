@@ -11,4 +11,4 @@ exports.sendgrid = (email, url) => {
       url: `${url}`,
     },
   });
-}
+};

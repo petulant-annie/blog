@@ -7,8 +7,8 @@ const bucket = storage.bucket(process.env.GCS_BUCKET);
 
 const fileFilter = (req, file, done) => {
   if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    done(null, true)
-  } else { done(new Error, false) }
+    done(null, true);
+  } else { done(new Error, false); }
 };
 
 exports.upload = Multer({
@@ -26,20 +26,20 @@ exports.sendUploadToGCS = async (req, res, next) => {
   }
 
   if (req.headers.referer.includes('articles')) {
-    prefix = 'anna/articles'
-    size = { width: 1200, height: 630 }
+    prefix = 'anna/articles';
+    size = { width: 1200, height: 630 };
   } else {
     prefix = 'anna/avatars';
-    size = { width: 180, height: 180 }
+    size = { width: 180, height: 180 };
   }
 
   const sharpImage =
     await sharp(req.file.buffer)
       .resize(size.width, size.height)
-      .toBuffer()
+      .toBuffer();
 
   const fileName = `${Date.now()}-${req.file.originalname}`;
-  const fullFileName = `${prefix}/${size.width}x${size.height}/${fileName}`
+  const fullFileName = `${prefix}/${size.width}x${size.height}/${fileName}`;
   const blob = bucket.file(fullFileName);
 
   const blobStream = blob.createWriteStream({
@@ -60,10 +60,10 @@ exports.sendUploadToGCS = async (req, res, next) => {
   });
 
   blobStream.end(sharpImage);
-}
+};
 
 exports.deleteFromGCS = (pic) => {
   const fileName = pic.slice(49);
   const image = bucket.file(fileName);
   image.delete();
-}
+};

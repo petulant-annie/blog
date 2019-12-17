@@ -12,7 +12,7 @@ const count = 5;
 commentsRouter.get('/', asyncMiddleware(async (req, res) => {
   let after = 1e9;
   if (req.query.after) {
-    after = req.query.after
+    after = req.query.after;
   }
 
   const comment = await Comment.findAll({
@@ -63,11 +63,11 @@ commentsRouter.post('/',
   }));
 
 commentsRouter.delete('/:id', isLoggedIn, asyncMiddleware(async (req, res) => {
-  const comment = await Comment.findOne({ where: { id: req.params.id } })
+  const comment = await Comment.findOne({ where: { id: req.params.id } });
   await comment.destroy();
 
   req.app.locals.socket.to(`room-${req.params.articleId}`, { action: 'destroy', data: { comment } });
-  res.send({ data: comment })
+  res.send({ data: comment });
 }));
 
 module.exports = commentsRouter;

@@ -3,7 +3,7 @@ const articlesRouter = express.Router();
 const mongoose = require('mongoose');
 const Sequelize = require('sequelize');
 const { lt, lte, and } = Sequelize.Op;
-const { check, validationResult } = require('express-validator');
+const { check } = require('express-validator');
 
 const { User, Article } = require('../models/index');
 const viewsScheme = require('../schemes/viewsScheme');
@@ -12,6 +12,7 @@ const infoLogger = require('../loggers/infoLogger').logger;
 const viewsLogger = require('../loggers/viewsLogger').logger;
 const asyncMiddleware = require('../asyncMiddleware');
 const google = require('../google-cloud-storage');
+const validation = require('../validation');
 
 const commentsRouter = require('./comments');
 const count = 5;
@@ -29,8 +30,8 @@ const articlesSelect = (req) => {
   return {
     createdAt,
     id,
-  }
-}
+  };
+};
 
 articlesRouter.use('/:articleId/comments', commentsRouter);
 articlesRouter.get('/', asyncMiddleware(async (req, res) => {
@@ -52,7 +53,7 @@ articlesRouter.get('/', asyncMiddleware(async (req, res) => {
   const articlesViews = await Views.find({});
   const mapped = article.map(item => {
     const viewsElement = articlesViews.find(element => element.articleId === item.id);
-    return { ...item, views: viewsElement.views }
+    return { ...item, views: viewsElement.views };
   });
   infoLogger.info('get all articles');
 
@@ -95,10 +96,7 @@ articlesRouter.post('/',
     check('content').isLength({ min: 1, max: 255 }),
   ],
   asyncMiddleware(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
-    }
+    await validation.check(req, res);
 
     let pic = '';
     if (req.file && req.file.gcsUrl) {
@@ -131,10 +129,7 @@ articlesRouter.put('/:id',
     check('content').isLength({ min: 1, max: 255 }),
   ],
   asyncMiddleware(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
-    }
+    await validation.check(req, res);
 
     let pic;
 

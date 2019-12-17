@@ -15,7 +15,7 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
         userId: id,
       }
     });
-  }
+  };
 
   const user = await User.findOne({
     where: { email: email },
@@ -36,7 +36,7 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
     addAccount(user.id);
     return user;
   }
-}
+};
 
 module.exports = function (passport) {
   passport.use(
@@ -48,16 +48,16 @@ module.exports = function (passport) {
             where: { email: email, isVerified: true },
             raw: true,
             nest: true,
-          })
+          });
           if (!user) {
-            return done(null, false, { message: 'User not registered' })
+            return done(null, false, { message: 'User not registered' });
           }
           bcrypt.compare(password, user.password, (err, isMatch) => {
             if (err) { throw err; }
             if (isMatch) {
-              return done(null, user)
+              return done(null, user);
             } else {
-              return done(null, false, { message: 'Password incorrect' })
+              return done(null, false, { message: 'Password incorrect' });
             }
           });
 
@@ -102,4 +102,4 @@ module.exports = function (passport) {
       return done(null, user);
     } catch (err) { return done(err); }
   }));
-}
+};
