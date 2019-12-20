@@ -31,6 +31,7 @@ module.exports = {
       },
       isPro: {
         type: Sequelize.BOOLEAN,
+        allowNull: false,
       },
       stripeCustomerId: {
         type: Sequelize.STRING,

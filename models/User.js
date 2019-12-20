@@ -27,6 +27,7 @@ User.init({
   },
   isPro: {
     type: DataTypes.BOOLEAN,
+    allowNull: false,
   },
   stripeCustomerId: {
     type: DataTypes.STRING,

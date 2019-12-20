@@ -17,6 +17,9 @@ const validation = require('../validation');
 const getTokens = require('../jwt');
 const google = require('../google-cloud-storage');
 const sg = require('../sendgrid-template');
+const stripe = require('../stripe-template');
+
+const isPropAmount = 100;
 
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await User.update({
@@ -70,11 +73,10 @@ auth.post('/registration',
   asyncMiddleware(async (req, res) => {
     await validation.check(req, res);
 
+    const link = `${process.env.FRONTED_VERIFY}/verify?token=${token}`;
+    const token = await getTokens.getAccessToken(req.body.email);
     const hash = await getHash(req.body.password);
     const isUser = await User.findOne({ where: { email: req.body.email } });
-
-    const token = await getTokens.getAccessToken(req.body.email);
-    const link = `${process.env.FRONTED_VERIFY}/verify?token=${token}`;
 
     if (!isUser) {
       const user = await User.create({
@@ -83,6 +85,7 @@ auth.post('/registration',
         email: req.body.email,
         password: hash,
         isVerified: false,
+        isPro: false,
       });
 
       sg.sendgrid(req.body.email, link);
@@ -112,7 +115,7 @@ auth.post('/registration/verify',
           infoLogger.info('verify new user');
           res.send({ data: isUser });
         });
-      } 
+      }
     });
   })
 );
@@ -152,5 +155,46 @@ auth.post('/logout', (req, res) => {
   infoLogger.info('logout');
   res.send({});
 });
+
+auth.put('/profile/card', asyncMiddleware(async (req, res) => {
+  const createCustomer = await stripe.createCustomer(req.user.email);
+  await User.update({
+    stripeCustomerId: createCustomer.id,
+    stripeCardId: createCustomer.default_source,
+  }, {
+    where: { id: req.user.id }
+  });
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const nestedUser = {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    picture: user.picture,
+    is_verified: user.isVerified,
+    is_pro: user.isPro,
+    stripe_customer_id: user.stripeCustomerId,
+    stripe_card_id: user.stripeCardId,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
+  res.send({ data: nestedUser });
+}));
+
+auth.get('/fees', asyncMiddleware(async (req, res) => {
+  res.send({ data: { amount: 100 } });
+}));
+
+auth.put('/fees', asyncMiddleware(async (req, res) => {
+  await stripe.createCharge(
+    req.user.stripeCustomerId, req.body.amount, req.user.email, req.user.stripeCardId);
+  if (req.body.amount >= isPropAmount) {
+    await User.update({ isPro: true }, { where: { id: req.user.id } });
+  }
+
+  const user = await User.findOne({ where: { id: req.user.id } });
+  res.send({ data: { user, amount: req.body.amount } });
+}));
 
 module.exports = auth;

@@ -17,11 +17,13 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
     });
   };
 
+  await User.update({ isVerified: true }, { where: { email: email } });
   const user = await User.findOne({
     where: { email: email },
     raw: true,
     nest: true,
   });
+
   if (!user) {
     const newUser = await User.create({
       firstName: firstName,
@@ -29,6 +31,7 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
       email: email,
       picture: picture,
       isVerified: true,
+      isPro: false,
     });
     addAccount(newUser.id);
     return newUser;
