@@ -88,7 +88,7 @@ auth.post('/registration',
         isPro: false,
       });
 
-      sg.sendgrid(req.body.email, link);
+      sg.verification(req.body.email, link);
       infoLogger.info('registration new user');
       res.send({ data: user });
     }
@@ -96,7 +96,7 @@ auth.post('/registration',
     if (isUser.isVerified) {
       res.redirect(401, '/login');
     } else {
-      sg.sendgrid(req.body.email, link);
+      sg.verification(req.body.email, link);
       infoLogger.info('new user email verification');
       res.send({ data: isUser });
     }
@@ -183,17 +183,19 @@ auth.put('/profile/card', asyncMiddleware(async (req, res) => {
 }));
 
 auth.get('/fees', asyncMiddleware(async (req, res) => {
-  res.send({ data: { amount: 100 } });
+  res.send({ data: { amount: isPropAmount } });
 }));
 
 auth.put('/fees', asyncMiddleware(async (req, res) => {
-  await stripe.createCharge(
+  const charge = await stripe.createCharge(
     req.user.stripeCustomerId, req.body.amount, req.user.email, req.user.stripeCardId);
   if (req.body.amount >= isPropAmount) {
     await User.update({ isPro: true }, { where: { id: req.user.id } });
+    sg.pro(req.user.email);
   }
 
   const user = await User.findOne({ where: { id: req.user.id } });
+  sg.payments(req.user.email, charge.receipt_url);
   res.send({ data: { user, amount: req.body.amount } });
 }));
 
