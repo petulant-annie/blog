@@ -19,8 +19,6 @@ const google = require('../google-cloud-storage');
 const sg = require('../sendgrid-template');
 const stripe = require('../stripe-template');
 
-const isPropAmount = 100;
-
 auth.put('/profile', isLoggedIn, asyncMiddleware(async (req, res) => {
   await User.update({
     firstName: req.body.firstName,
@@ -77,6 +75,7 @@ auth.post('/registration',
     const token = await getTokens.getAccessToken(req.body.email);
     const hash = await getHash(req.body.password);
     const isUser = await User.findOne({ where: { email: req.body.email } });
+    const createCustomer = await stripe.createCustomer(req.user.email);
 
     if (!isUser) {
       const user = await User.create({
@@ -86,6 +85,8 @@ auth.post('/registration',
         password: hash,
         isVerified: false,
         isPro: false,
+        stripeCustomerId: createCustomer.id,
+        stripeCardId: createCustomer.default_source,
       });
 
       sg.verification(req.body.email, link);
@@ -157,13 +158,6 @@ auth.post('/logout', (req, res) => {
 });
 
 auth.put('/profile/card', asyncMiddleware(async (req, res) => {
-  const createCustomer = await stripe.createCustomer(req.user.email);
-  await User.update({
-    stripeCustomerId: createCustomer.id,
-    stripeCardId: createCustomer.default_source,
-  }, {
-    where: { id: req.user.id }
-  });
   const user = await User.findOne({ where: { id: req.user.id } });
   const nestedUser = {
     id: user.id,
@@ -183,20 +177,22 @@ auth.put('/profile/card', asyncMiddleware(async (req, res) => {
 }));
 
 auth.get('/fees', asyncMiddleware(async (req, res) => {
-  res.send({ data: { amount: isPropAmount } });
+  res.send({ data: { amount: 100 } });
 }));
 
 auth.put('/fees', asyncMiddleware(async (req, res) => {
+  const centsAmount = req.body.amount * 100;
   const charge = await stripe.createCharge(
-    req.user.stripeCustomerId, req.body.amount, req.user.email, req.user.stripeCardId);
-  if (req.body.amount >= isPropAmount) {
+    req.user.stripeCustomerId, centsAmount, req.user.email, req.user.stripeCardId);
+
+  if (centsAmount >= 10000) {
     await User.update({ isPro: true }, { where: { id: req.user.id } });
     sg.pro(req.user.email);
   }
-
   const user = await User.findOne({ where: { id: req.user.id } });
-  sg.payments(req.user.email, charge.receipt_url);
-  res.send({ data: { user, amount: req.body.amount } });
+
+  sg.payments(user.email, charge.receipt_url);
+  res.send({ data: { user, amount: centsAmount } });
 }));
 
 module.exports = auth;

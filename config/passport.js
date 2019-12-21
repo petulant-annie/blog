@@ -2,6 +2,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const bcrypt = require('bcrypt');
+const stripe = require('../stripe-template');
 
 const { User, OauthAccount } = require('../models/index');
 
@@ -25,6 +26,7 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
   });
 
   if (!user) {
+    const createCustomer = await stripe.createCustomer(email);
     const newUser = await User.create({
       firstName: firstName,
       lastName: lastName,
@@ -32,6 +34,8 @@ const userAuth = async (firstName, lastName, email, provider, providerId, pictur
       picture: picture,
       isVerified: true,
       isPro: false,
+      stripeCustomerId: createCustomer.id,
+      stripeCardId: createCustomer.default_source,
     });
     addAccount(newUser.id);
     return newUser;
